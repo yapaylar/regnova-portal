@@ -26,6 +26,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  isBootstrapping: boolean;
   setSession: (session: AuthSession) => void;
   updateUser: (patch: Partial<AuthUser>) => void;
   clearSession: () => void;
@@ -65,12 +66,14 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSessionState] = useState<AuthSession | null>(null);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   useEffect(() => {
     const stored = loadStoredSession();
     if (stored) {
       setSessionState(stored);
     }
+    setIsBootstrapping(false);
   }, []);
 
   const setSession = useCallback((nextSession: AuthSession) => {
@@ -129,12 +132,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user: session?.user ?? null,
       refreshToken: session?.refreshToken ?? null,
       isAuthenticated: Boolean(session?.user),
+      isBootstrapping,
       setSession,
       updateUser,
       clearSession,
       logout,
     }),
-    [session, setSession, updateUser, clearSession, logout],
+    [session, isBootstrapping, setSession, updateUser, clearSession, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
