@@ -29,35 +29,35 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-[var(--border-strong)] bg-[var(--header-background)] backdrop-blur supports-[backdrop-filter]:bg-[var(--header-background-blur)]">
         <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-          <div className="flex items-center gap-3 md:hidden">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open navigation">
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-xs bg-[var(--sidebar)] p-0">
-                <SheetHeader className="border-b border-[var(--sidebar-border)] px-4 py-3">
-                  <SheetTitle className="text-sm font-semibold text-[var(--sidebar-foreground)]">Menu</SheetTitle>
-                </SheetHeader>
-                <Sidebar navigation={navigation} onNavigate={() => setSidebarOpen(false)} />
-              </SheetContent>
-            </Sheet>
-          </div>
           <Link href="/" className="flex items-center gap-3">
             <Image
               src="/logo.svg"
               alt="Regnova"
-              width={150}
-              height={48}
+              width={180}
+              height={64}
               priority
-              className="h-11 w-auto"
+              className="h-10 w-auto sm:h-12"
             />
             <span className="hidden text-sm italic tracking-wide text-muted-foreground md:inline-block">
               Post Market Surveillance Center
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center md:hidden">
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Open navigation">
+                    <Menu className="size-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-full max-w-xs bg-[var(--sidebar)] p-0">
+                  <SheetHeader className="border-b border-[var(--sidebar-border)] px-4 py-3">
+                    <SheetTitle className="text-sm font-semibold text-[var(--sidebar-foreground)]">Menu</SheetTitle>
+                  </SheetHeader>
+                  <Sidebar navigation={navigation} onNavigate={() => setSidebarOpen(false)} />
+                </SheetContent>
+              </Sheet>
+            </div>
             <div className="relative hidden w-full max-w-xs md:flex">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
