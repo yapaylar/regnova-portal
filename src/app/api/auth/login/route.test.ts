@@ -11,7 +11,7 @@ jest.mock("@/lib/prisma", () => {
   const prismaMock = {
     user: { findUnique: jest.fn() },
     auditLog: { create: jest.fn() },
-    $transaction: jest.fn((fn: (tx: typeof mockTx) => any) => fn(mockTx)),
+    $transaction: jest.fn(async (fn: (tx: typeof mockTx) => Promise<unknown> | unknown) => fn(mockTx)),
   };
 
   return {

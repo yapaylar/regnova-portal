@@ -3,7 +3,6 @@
 import { ArrowUpRight, BarChart3, ListChecks, RefreshCw, ShieldAlert, ClipboardList, Layers, Search } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASHBOARD_METRICS, RECENT_COMPLAINTS, RECALLS } from "@/data/mock";

@@ -79,39 +79,64 @@ export default function ReportWizardPage() {
     }
   };
 
-  const onSubmit = form.handleSubmit((values) => {
-    const trackingId = generateTrackingId();
-    toast.success("Report submitted successfully", {
-      description: `Your tracking ID is ${trackingId}. Please save this ID to follow the status.`,
-      action: {
-        label: "Track Now",
-        onClick: () => router.push(`/track?id=${trackingId}`),
-      },
-    });
-    clearDraft();
-    router.push(`/report/success?trackingId=${trackingId}`);
+  const onSubmit = form.handleSubmit(async (values) => {
+    try {
+      const response = await fetch("/api/report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null);
+        toast.error("Could not submit report", {
+          description: errorPayload?.error?.message ?? "An unexpected error occurred.",
+        });
+        return;
+      }
+
+      const data = await response.json();
+
+      toast.success("Report submitted successfully", {
+        description: `Tracking ID: ${data.trackingId}. Please save this ID to follow the status.`,
+        action: {
+          label: "Track Now",
+          onClick: () => router.push(`/track?id=${data.trackingId}`),
+        },
+      });
+
+      clearDraft();
+      router.push(`/report/success?trackingId=${data.trackingId}`);
+    } catch (error) {
+      console.error("Report submission failed", error);
+      toast.error("Could not submit report", {
+        description: "Please try again shortly.",
+      });
+    }
   });
 
-  const stepContent = useMemo(() => {
-    switch (activeStep) {
-      case "report-type":
-        return <ReportTypeStep control={form.control} />;
-      case "device-information":
-        return <DeviceStep control={form.control} />;
-      case "event-details":
-        return <EventStep control={form.control} />;
-      case "facility-details":
-        return <FacilityStep control={form.control} />;
-      case "reporter-details":
-        return <ReporterStep control={form.control} role={role} />;
-      case "attachments":
-        return <AttachmentsStep control={form.control} />;
-      case "review":
-        return <ReviewStep control={form.control} />;
-      default:
-        return null;
-    }
-  }, [activeStep, form.control, role]);
+const stepContent = useMemo(() => {
+  switch (activeStep) {
+    case "report-type":
+      return <ReportTypeStep control={form.control} />;
+    case "device-information":
+      return <DeviceStep control={form.control} />;
+    case "event-details":
+      return <EventStep control={form.control} />;
+    case "facility-details":
+      return <FacilityStep control={form.control} />;
+    case "reporter-details":
+      return <ReporterStep control={form.control} role={role} />;
+    case "attachments":
+      return <AttachmentsStep control={form.control} />;
+    case "review":
+      return <ReviewStep control={form.control} />;
+    default:
+      return null;
+  }
+}, [activeStep, form.control, role]);
 
   const handleSaveProgress = () => {
     updateDraft({
@@ -268,9 +293,4 @@ const stepFieldMap: Record<ReportStep, (keyof ReportFormValues | `${string}.${st
   attachments: ["attachments"],
   review: [],
 };
-
-function generateTrackingId() {
-  const base = Math.floor(Math.random() * 9000) + 1000;
-  return `CMP-2025-${base}`;
-}
 

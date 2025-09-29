@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { AuthSuccessResponse } from "@/lib/auth/schemas";
 
 type UserProfileType = "admin" | "facility" | "manufacturer";
 

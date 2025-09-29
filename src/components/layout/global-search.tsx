@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/command";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RECENT_COMPLAINTS, RECALLS, RESOURCES } from "@/data/mock";
-import { useRole } from "@/context/role-context";
 
 type SearchItem = {
   title: string;
@@ -26,7 +25,6 @@ type GlobalSearchProps = {
 };
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
-  const { role } = useRole();
   const [query, setQuery] = useState("");
 
   const items = useMemo((): SearchItem[] => {
@@ -49,14 +47,13 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         })),
       ),
     ];
-  }, [role]);
+  }, []);
 
-  const filtered = useMemo(() => {
-    if (!query) return items;
-    return items.filter((item) =>
-      `${item.title} ${item.subtitle}`.toLowerCase().includes(query.toLowerCase()),
-    );
-  }, [items, query]);
+  const filtered = query
+    ? items.filter((item) =>
+        `${item.title} ${item.subtitle}`.toLowerCase().includes(query.toLowerCase()),
+      )
+    : items;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

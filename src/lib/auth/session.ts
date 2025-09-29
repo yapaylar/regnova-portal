@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { verifyAccessToken } from "@/lib/auth/jwt";
+
 const ACCESS_COOKIE_NAME = "regnova.access";
 const REFRESH_COOKIE_NAME = "regnova.refresh";
 
@@ -49,5 +51,33 @@ export function getRefreshCookie() {
 
 export function getAccessCookie() {
   return cookies().get(ACCESS_COOKIE_NAME)?.value;
+}
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  profileType: "admin" | "facility" | "manufacturer";
+  facilityId: string | null;
+  manufacturerId: string | null;
+  permissions: string[];
+};
+
+export async function getSessionUser(): Promise<SessionUser | null> {
+  try {
+    const token = getAccessCookie();
+    if (!token) return null;
+    const payload = verifyAccessToken(token);
+    return {
+      id: payload.sub,
+      email: payload.email,
+      profileType: payload.profileType,
+      facilityId: payload.facilityId ?? null,
+      manufacturerId: payload.manufacturerId ?? null,
+      permissions: payload.permissions ?? [],
+    };
+  } catch (error) {
+    console.error("Failed to read session user", error);
+    return null;
+  }
 }
 

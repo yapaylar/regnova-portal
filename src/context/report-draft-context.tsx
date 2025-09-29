@@ -4,10 +4,12 @@ import { createContext, useCallback, useContext, useMemo } from "react";
 
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
+import type { ReportFormValues } from "@/lib/validation";
+
 export type ReportDraft = {
   id: string;
   step: string;
-  data: Record<string, unknown>;
+  data: ReportFormValues;
 };
 
 type ReportDraftContextValue = {
@@ -36,7 +38,7 @@ export function ReportDraftProvider({ children }: { children: React.ReactNode })
         data: {
           ...(prev?.data ?? {}),
           ...(input.data ?? {}),
-        },
+        } as ReportFormValues,
       }));
     },
     [setValue],

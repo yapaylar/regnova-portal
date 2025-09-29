@@ -21,6 +21,14 @@ export default function AccountSettingsPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const form = useForm<SettingsFormValues>({
+    defaultValues: {
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
+      organization: user?.organization ?? "",
+    },
+  });
+
   if (!user) {
     return (
       <Card>
@@ -31,14 +39,6 @@ export default function AccountSettingsPage() {
       </Card>
     );
   }
-
-  const form = useForm<SettingsFormValues>({
-    defaultValues: {
-      firstName: user.firstName ?? "",
-      lastName: user.lastName ?? "",
-      organization: user.organization ?? "",
-    },
-  });
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {

@@ -20,7 +20,6 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       }
     }
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   const setValue = (value: T | ((prev: T) => T)) => {

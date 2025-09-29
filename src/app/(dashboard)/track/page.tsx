@@ -7,8 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { TRACKING_TIMELINE } from "@/data/mock";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+type TimelineResponse = {
+  report: {
+    trackingId: string;
+    status: string;
+    reportType: string;
+    submittedAt: string | null;
+    createdAt: string;
+    details: unknown;
+  };
+};
 
 type TrackFormValues = {
   trackingId: string;
@@ -30,22 +41,48 @@ function TrackComplaintContent() {
   const form = useForm<TrackFormValues>({ defaultValues });
   const [history, setHistory] = useState<StatusStep[] | null>(null);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = form.handleSubmit(({ trackingId }) => {
+  const onSubmit = form.handleSubmit(async ({ trackingId }) => {
     const cleaned = trackingId.trim().toUpperCase();
     form.setValue("trackingId", cleaned);
-    const timeline = TRACKING_TIMELINE[cleaned] ?? null;
-    setSubmittedId(cleaned);
-    setHistory(timeline);
+    if (!cleaned) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/report/${cleaned}`);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        toast.error("Tracking ID not found", {
+          description: payload?.error?.message ?? "Please check the ID and try again.",
+        });
+        setHistory(null);
+        setSubmittedId(cleaned);
+        return;
+      }
+      const data = (await response.json()) as TimelineResponse;
+      setSubmittedId(cleaned);
+      setHistory([
+        {
+          status: `Status: ${data.report.status}`,
+          date: (data.report.submittedAt ?? data.report.createdAt) ?? new Date().toISOString(),
+          note: "Report submitted to Regnova.",
+        },
+      ]);
+    } catch (error) {
+      console.error("Track request failed", error);
+      toast.error("Unable to fetch report", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
   });
 
   useEffect(() => {
     if (searchTrackingId) {
       const cleaned = searchTrackingId.trim().toUpperCase();
       form.setValue("trackingId", cleaned);
-      const timeline = TRACKING_TIMELINE[cleaned] ?? null;
-      setSubmittedId(cleaned);
-      setHistory(timeline);
+      void onSubmit({ trackingId: cleaned });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTrackingId]);
@@ -76,7 +113,9 @@ function TrackComplaintContent() {
               />
             </CardContent>
             <CardFooter className="flex gap-2">
-              <Button type="submit">Track Now</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Searching…" : "Track Now"}
+              </Button>
               <Button
                 type="button"
                 variant="ghost"

@@ -14,7 +14,7 @@ jest.mock("@/lib/prisma", () => {
   return {
     prisma: {
       user: { findUnique: jest.fn() },
-      $transaction: jest.fn((fn: (tx: typeof mockTx) => any) => fn(mockTx)),
+      $transaction: jest.fn(async (fn: (tx: typeof mockTx) => Promise<unknown> | unknown) => fn(mockTx)),
     },
     __mockTx: mockTx,
   };
@@ -130,7 +130,7 @@ describe("POST /api/auth/signup", () => {
 
   it("returns 429 when rate limit exceeded", async () => {
     const { checkRateLimit } = jest.requireMock("@/lib/rate-limit/redis");
-    checkRateLimit.mockResolvedValueOnce({ success: false } as any);
+    checkRateLimit.mockResolvedValueOnce({ success: false, limit: 5, remaining: 0, reset: Date.now() + 1000 });
 
     const request = new Request("http://localhost/api/auth/signup", {
       method: "POST",

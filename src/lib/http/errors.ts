@@ -35,8 +35,16 @@ export function toHttpError(error: unknown): HttpError {
     return error;
   }
 
-  if (error instanceof Error) {
+  if (error instanceof Error && "message" in error) {
     return new HttpError({ code: "INTERNAL_SERVER_ERROR", message: error.message, status: 500 });
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return new HttpError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: String((error as { message: unknown }).message),
+      status: 500,
+    });
   }
 
   return new HttpError({ code: "INTERNAL_SERVER_ERROR", message: "Unexpected error", status: 500 });

@@ -37,7 +37,7 @@ type RoleSelectorProps = {
 };
 
 export function RoleSelector({ user }: RoleSelectorProps) {
-  const { role, setRole, name, email, organization } = useRole();
+  const { role, name, email, organization } = useRole();
   const { logout } = useAuth();
   const { toast } = useToast();
   const [signingOut, setSigningOut] = useState(false);

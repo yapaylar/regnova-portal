@@ -57,13 +57,7 @@ type ReportTypeOptionProps = {
   onSelect: () => void;
 };
 
-function ReportTypeOption({
-  value,
-  title,
-  description,
-  selected,
-  onSelect,
-}: ReportTypeOptionProps) {
+function ReportTypeOption({ title, description, selected, onSelect }: ReportTypeOptionProps) {
   return (
     <button
       type="button"

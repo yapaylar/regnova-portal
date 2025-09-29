@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Download, Filter, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ const defaultFilters: FilterState = {
 };
 
 export default function RecallsPage() {
-  const { data: recalls = [], isLoading } = useRecalls();
+  const { data: recalls = [] } = useRecalls();
   const [filters, setFilters] = useState(defaultFilters);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
