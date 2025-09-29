@@ -2,7 +2,7 @@
 
 import { LogOut, Settings, User2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRole } from "@/context/role-context";
 import type { AuthUser } from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context";
+import { useToast } from "@/components/ui/use-toast";
+import { useRole } from "@/context/role-context";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABELS = {
@@ -36,6 +38,9 @@ type RoleSelectorProps = {
 
 export function RoleSelector({ user }: RoleSelectorProps) {
   const { role, setRole, name, email, organization } = useRole();
+  const { logout } = useAuth();
+  const { toast } = useToast();
+  const [signingOut, setSigningOut] = useState(false);
 
   const initials = useMemo(() => getInitials(name), [name]);
   const roleLabel = ROLE_LABELS[role];
@@ -83,7 +88,27 @@ export function RoleSelector({ user }: RoleSelectorProps) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleSignOut}>
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          disabled={signingOut}
+          onSelect={async () => {
+            setSigningOut(true);
+            try {
+              await logout();
+              toast.success("Signed out", {
+                description: "You have been signed out.",
+              });
+              window.location.href = "/login";
+            } catch (error) {
+              console.error("Logout failed", error);
+              toast.error("Logout failed", {
+                description: "Please try again.",
+              });
+            } finally {
+              setSigningOut(false);
+            }
+          }}
+        >
           <LogOut className="size-4" aria-hidden />
           Sign out
         </DropdownMenuItem>
@@ -101,9 +126,4 @@ function getInitials(name: string) {
     return parts[0].charAt(0).toUpperCase();
   }
   return parts.map((part) => part.charAt(0).toUpperCase()).join("");
-}
-
-function handleSignOut(event: Event) {
-  event.preventDefault();
-  console.info("Sign out requested");
 }
