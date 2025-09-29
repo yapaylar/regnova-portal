@@ -6,19 +6,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useRole } from "@/context/role-context";
-import { useAuth } from "@/context/auth-context";
 import { getVisibleNav } from "@/context/rbac";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { GlobalSearch } from "./global-search";
-import { RoleSelector } from "./role-selector";
 import { Sidebar } from "./sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -28,7 +20,6 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const { role } = useRole();
-  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -45,14 +36,11 @@ export function AppShell({ children }: AppShellProps) {
                   <Menu className="size-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="px-0">
-                <SheetHeader className="px-6">
-                  <SheetTitle>Navigation</SheetTitle>
+              <SheetContent side="left" className="w-full max-w-xs bg-[var(--sidebar)] p-0">
+                <SheetHeader className="border-b border-[var(--sidebar-border)] px-4 py-3">
+                  <SheetTitle className="text-sm font-semibold text-[var(--sidebar-foreground)]">Menu</SheetTitle>
                 </SheetHeader>
-                <Sidebar
-                  navigation={navigation}
-                  onNavigate={() => setSidebarOpen(false)}
-                />
+                <Sidebar navigation={navigation} onNavigate={() => setSidebarOpen(false)} />
               </SheetContent>
             </Sheet>
           </div>
@@ -65,7 +53,7 @@ export function AppShell({ children }: AppShellProps) {
               priority
               className="h-11 w-auto"
             />
-            <span className="hidden text-sm italic text-muted-foreground md:inline-block tracking-wide">
+            <span className="hidden text-sm italic tracking-wide text-muted-foreground md:inline-block">
               Post Market Surveillance Center
             </span>
           </Link>
@@ -82,24 +70,28 @@ export function AppShell({ children }: AppShellProps) {
             </div>
             <div className="flex items-center gap-2">
               <ThemeSwitcher />
-              <RoleSelector user={user} />
             </div>
           </div>
         </div>
       </header>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 pb-6 pt-4 md:flex-row md:px-6">
-        <aside className="hidden w-64 shrink-0 md:block">
-          <Sidebar navigation={navigation} />
-        </aside>
-        <main className="flex-1">
-          <div className="min-h-[calc(100vh-12rem)] rounded-lg border bg-card p-4 shadow-sm md:p-6">
-            {children}
-          </div>
-          <footer className="mt-6 text-sm text-muted-foreground">
-            © 2025 Regnova. Post-Market Surveillance • Inventory • Compliance.
-          </footer>
-        </main>
+
+      <div className="flex-1">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 gap-6 px-4 pb-6 pt-4 md:px-6">
+          <aside className="hidden w-64 shrink-0 md:flex md:flex-col">
+            <Sidebar navigation={navigation} />
+          </aside>
+
+          <main className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto rounded-lg border bg-card p-4 shadow-sm md:p-6">
+              {children}
+            </div>
+            <footer className="mt-6 text-sm text-muted-foreground">
+              © 2025 Regnova. Post-Market Surveillance • Inventory • Compliance.
+            </footer>
+          </main>
+        </div>
       </div>
+
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );

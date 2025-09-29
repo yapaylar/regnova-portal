@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { NavItem } from "@/context/rbac";
 import { cn } from "@/lib/utils";
+import { RoleSelector } from "@/components/layout/role-selector";
 
 const ICONS = {
   home: Home,
@@ -33,7 +34,7 @@ export function Sidebar({ navigation, onNavigate }: SidebarProps) {
     return (
       <div>
         {title ? (
-          <div className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">
+          <div className="mb-2 px-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--sidebar-foreground)]/70">
             {title}
           </div>
         ) : null}
@@ -47,10 +48,10 @@ export function Sidebar({ navigation, onNavigate }: SidebarProps) {
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-4 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                  "flex items-center gap-3 rounded-lg px-4 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                    ? "bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)] shadow-sm"
+                    : "text-[var(--sidebar-foreground)]/80 hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]",
                 )}
               >
                 {Icon ? <Icon className="size-4" aria-hidden /> : null}
@@ -64,19 +65,23 @@ export function Sidebar({ navigation, onNavigate }: SidebarProps) {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <nav className="flex flex-col gap-4 pb-6">
-          <div className="px-6 pt-4">
-            <p className="text-xs uppercase text-muted-foreground">Main</p>
+    <div className="flex h-full flex-col text-[var(--sidebar-foreground)]">
+      <div className="flex-1 overflow-y-auto px-2 pb-24 pt-6">
+        <nav className="flex flex-col gap-6">
+          <div>
+            <p className="px-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--sidebar-foreground)]/70">Main</p>
+            <div className="mt-2 space-y-1">{renderNavGroup(navigation.main)}</div>
           </div>
-          <div className="px-2">{renderNavGroup(navigation.main)}</div>
           {navigation.admin.length > 0 ? (
-            <div className="px-2">
+            <div>
               {renderNavGroup(navigation.admin, "Admin")}
             </div>
           ) : null}
         </nav>
+      </div>
+
+      <div className="sticky bottom-0 border-t border-[var(--sidebar-border)] bg-background/70 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+        <RoleSelector placement="sidebar" />
       </div>
     </div>
   );

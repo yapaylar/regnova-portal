@@ -34,9 +34,10 @@ const ROLE_HELP_TEXT: Record<"admin" | "facility" | "manufacturer", string> = {
 
 type RoleSelectorProps = {
   user?: AuthUser | null;
+  placement?: "header" | "sidebar";
 };
 
-export function RoleSelector({ user }: RoleSelectorProps) {
+export function RoleSelector({ user, placement = "header" }: RoleSelectorProps) {
   const { role, name, email, organization } = useRole();
   const { logout } = useAuth();
   const { toast } = useToast();
@@ -52,23 +53,33 @@ export function RoleSelector({ user }: RoleSelectorProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="inline-flex h-12 min-w-[14rem] items-center justify-between gap-3 rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-left shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/50 hover:bg-accent hover:text-accent-foreground"
+          className={cn(
+            "inline-flex h-12 items-center justify-between gap-3 px-3 py-2 text-left transition",
+            "shadow-sm",
+            placement === "header"
+              ? "min-w-[14rem] rounded-xl border border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/50 hover:bg-accent hover:text-accent-foreground"
+              : "w-full rounded-lg border border-[var(--sidebar-border)] bg-background/80 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]",
+          )}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              {initials}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">{name}</span>
-              <span className="text-xs text-muted-foreground">{organization}</span>
-            </div>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-semibold text-foreground">{name}</span>
+            <span className="truncate text-xs text-muted-foreground">{organization}</span>
           </div>
-          <Badge variant="outline" className="rounded-md px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            {roleLabel}
+          <Badge
+            variant="outline"
+            className={cn(
+              "ml-auto flex max-w-[45%] items-center justify-center truncate px-2 py-0.5 text-[10px] uppercase tracking-wide",
+              placement === "sidebar"
+                ? "border-[var(--sidebar-border)] text-[var(--sidebar-foreground)]/80"
+                : "text-muted-foreground",
+            )}
+            title={roleLabel}
+          >
+            <span className="truncate">{roleLabel}</span>
           </Badge>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
+      <DropdownMenuContent align={placement === "sidebar" ? "center" : "end"} className="w-72">
         <DropdownMenuLabel className="flex flex-col gap-1">
           <span className="text-sm font-semibold text-foreground">{name}</span>
           <span className="text-xs text-muted-foreground">{displayEmail}</span>
