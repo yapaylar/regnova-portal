@@ -14,12 +14,22 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </header>
       <main className="flex flex-1 items-center justify-center px-0 py-12 sm:px-6">
         <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl border bg-card shadow-xl">
-          <div className="hidden flex-1 flex-col justify-between bg-primary/5 p-10 lg:flex">
+          <div className="hidden flex-1 flex-col gap-10 bg-primary/5 p-10 lg:flex">
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Regnova Portal</h2>
               <p className="text-sm text-primary/80">
                 Secure access for facilities, manufacturers, and admins to manage complaints, recalls, and post-market surveillance workflows.
               </p>
+            </div>
+            <div className="flex flex-1 items-center justify-center">
+              <Image
+                src="/favicon.svg"
+                alt="Illustration representing connected compliance workflows"
+                width={280}
+                height={280}
+                className="w-56 max-w-full drop-shadow-lg"
+                priority
+              />
             </div>
             <div className="space-y-3 text-sm text-primary/70">
               <p>• Submit and track post-market reports in real time</p>

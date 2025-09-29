@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "Regnova Portal",
   description:
     "Regnova customer and admin portal for post-market surveillance and compliance.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
