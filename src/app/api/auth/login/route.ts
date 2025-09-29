@@ -100,10 +100,12 @@ export async function POST(request: Request) {
     const facilityId = user.facilityProfile?.facilityId ?? null;
     const manufacturerId = user.manufacturerProfile?.manufacturerId ?? null;
 
+    const normalizedProfileType = user.profileType.toLowerCase() as "admin" | "facility" | "manufacturer";
+
     const accessToken = signAccessToken({
       sub: user.id,
       email: user.email,
-      profileType: user.profileType.toLowerCase() as "admin" | "facility" | "manufacturer",
+      profileType: normalizedProfileType,
       facilityId,
       manufacturerId,
       permissions,
@@ -112,7 +114,7 @@ export async function POST(request: Request) {
     const refreshToken = signRefreshToken({
       sub: user.id,
       email: user.email,
-      profileType: user.profileType.toLowerCase() as "admin" | "facility" | "manufacturer",
+      profileType: normalizedProfileType,
       facilityId,
       manufacturerId,
       permissions,
@@ -164,7 +166,7 @@ export async function POST(request: Request) {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          profileType: user.profileType.toLowerCase(),
+          profileType: normalizedProfileType,
           organization: user.organization,
           facilityId,
           manufacturerId,

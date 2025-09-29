@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useRole } from "@/context/role-context";
+import { useAuth } from "@/context/auth-context";
 import { getVisibleNav } from "@/context/rbac";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const { role } = useRole();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -80,7 +82,7 @@ export function AppShell({ children }: AppShellProps) {
             </div>
             <div className="flex items-center gap-2">
               <ThemeSwitcher />
-              <RoleSelector />
+              <RoleSelector user={user} />
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRole } from "@/context/role-context";
+import type { AuthUser } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABELS = {
@@ -29,12 +30,17 @@ const ROLE_HELP_TEXT: Record<"admin" | "facility" | "manufacturer", string> = {
   manufacturer: "Manufacturer workspace",
 };
 
-export function RoleSelector() {
-  const { profile } = useRole();
+type RoleSelectorProps = {
+  user?: AuthUser | null;
+};
 
-  const initials = useMemo(() => getInitials(profile.name), [profile.name]);
-  const roleLabel = ROLE_LABELS[profile.role];
-  const helpText = ROLE_HELP_TEXT[profile.role];
+export function RoleSelector({ user }: RoleSelectorProps) {
+  const { role, setRole, name, email, organization } = useRole();
+
+  const initials = useMemo(() => getInitials(name), [name]);
+  const roleLabel = ROLE_LABELS[role];
+  const helpText = ROLE_HELP_TEXT[role];
+  const displayEmail = user?.email ?? email;
 
   return (
     <DropdownMenu>
@@ -48,8 +54,8 @@ export function RoleSelector() {
               {initials}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">{profile.name}</span>
-              <span className="text-xs text-muted-foreground">{profile.organization}</span>
+              <span className="text-sm font-semibold text-foreground">{name}</span>
+              <span className="text-xs text-muted-foreground">{organization}</span>
             </div>
           </div>
           <Badge variant="outline" className="rounded-md px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -59,8 +65,8 @@ export function RoleSelector() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-foreground">{profile.name}</span>
-          <span className="text-xs text-muted-foreground">{profile.email}</span>
+          <span className="text-sm font-semibold text-foreground">{name}</span>
+          <span className="text-xs text-muted-foreground">{displayEmail}</span>
           <span className="text-xs text-muted-foreground">{helpText}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

@@ -12,11 +12,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setSession } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -47,6 +49,11 @@ export default function LoginPage() {
         });
         return;
       }
+
+      setSession({
+        user: data.user,
+        refreshToken: values.rememberMe ? data.refreshToken : null,
+      });
 
       toast.success("Welcome back", {
         description: "You are now signed in.",

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/auth-context";
 
 const ROLE_OPTIONS = ["admin", "facility", "manufacturer"] as const;
 
@@ -20,6 +21,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setSession } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(signupSchema),
@@ -56,10 +58,15 @@ export default function SignupPage() {
         return;
       }
 
+      setSession({
+        user: data.user,
+        refreshToken: data.refreshToken,
+      });
+
       toast.success("Account created", {
         description: "Welcome to Regnova Portal. You can now sign in.",
       });
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Signup request failed", error);
       toast.error("Unexpected error", {

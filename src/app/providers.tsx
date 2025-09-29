@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/context/theme-context";
+import { AuthProvider } from "@/context/auth-context";
 import { createQueryClient } from "@/lib/query-client";
 
 type ProvidersProps = {
@@ -23,11 +24,13 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <ThemeProvider defaultTheme="slate">
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
-        <Toaster richColors position="bottom-right" closeButton />
-      </QueryClientProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+          <Toaster richColors position="bottom-right" closeButton />
+        </QueryClientProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

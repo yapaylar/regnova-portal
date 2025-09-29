@@ -141,21 +141,25 @@ export async function POST(request: Request) {
       return user;
     });
 
+    const normalizedProfileType = parsed.profileType;
+    const facilityId = profileResolution.facilityConnectId ?? null;
+    const manufacturerId = profileResolution.manufacturerConnectId ?? null;
+
     const accessToken = signAccessToken({
       sub: createdUser.id,
       email: createdUser.email,
-      profileType: parsed.profileType,
-      facilityId: profileResolution.facilityConnectId ?? null,
-      manufacturerId: profileResolution.manufacturerConnectId ?? null,
+      profileType: normalizedProfileType,
+      facilityId,
+      manufacturerId,
       permissions,
     });
 
     const refreshToken = signRefreshToken({
       sub: createdUser.id,
       email: createdUser.email,
-      profileType: parsed.profileType,
-      facilityId: profileResolution.facilityConnectId ?? null,
-      manufacturerId: profileResolution.manufacturerConnectId ?? null,
+      profileType: normalizedProfileType,
+      facilityId,
+      manufacturerId,
       permissions,
     });
 
@@ -173,10 +177,10 @@ export async function POST(request: Request) {
           email: createdUser.email,
           firstName: createdUser.firstName,
           lastName: createdUser.lastName,
-          profileType: parsed.profileType,
+          profileType: normalizedProfileType,
           organization: createdUser.organization,
-          facilityId: profileResolution.facilityConnectId ?? null,
-          manufacturerId: profileResolution.manufacturerConnectId ?? null,
+          facilityId,
+          manufacturerId,
           permissions,
         },
       },
