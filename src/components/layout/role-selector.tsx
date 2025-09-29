@@ -2,7 +2,7 @@
 
 import { LogOut, Settings, User2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { AuthUser } from "@/context/auth-context";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 import { useRole } from "@/context/role-context";
@@ -32,18 +31,12 @@ const ROLE_HELP_TEXT: Record<"admin" | "facility" | "manufacturer", string> = {
   manufacturer: "Manufacturer workspace",
 };
 
-type RoleSelectorProps = {
-  user?: AuthUser | null;
-  placement?: "header" | "sidebar";
-};
-
-export function RoleSelector({ user, placement = "header" }: RoleSelectorProps) {
+export function RoleSelector({ placement = "header" }: RoleSelectorProps) {
   const { role, name, email, organization } = useRole();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { toast } = useToast();
   const [signingOut, setSigningOut] = useState(false);
 
-  const initials = useMemo(() => getInitials(name), [name]);
   const roleLabel = ROLE_LABELS[role];
   const helpText = ROLE_HELP_TEXT[role];
   const displayEmail = user?.email ?? email;
@@ -129,12 +122,3 @@ export function RoleSelector({ user, placement = "header" }: RoleSelectorProps) 
 }
 
 const menuItemClassName = cn("flex w-full items-center gap-2");
-
-function getInitials(name: string) {
-  if (!name) return "?";
-  const parts = name.trim().split(/\s+/).slice(0, 2);
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
-  }
-  return parts.map((part) => part.charAt(0).toUpperCase()).join("");
-}
