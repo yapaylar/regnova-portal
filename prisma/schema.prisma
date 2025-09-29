@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Core user record containing login identity and shared attributes.
+model User {
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  emailNormalized    String              @unique @map("email_normalized")
+  firstName          String?             @map("first_name")
+  lastName           String?             @map("last_name")
+  organization       String?             @map("organization")
+  profileType        UserProfileType     @map("profile_type")
+  isActive           Boolean             @default(true) @map("is_active")
+  lastLoginAt        DateTime?           @map("last_login_at")
+  passwordCredential PasswordCredential?
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]
+  facilityProfile    FacilityProfile?
+  manufacturerProfile ManufacturerProfile?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  submittedReports   Report[]            @relation("ReportSubmitter")
+  verificationTokens VerificationToken[]
+
+  @@index([emailNormalized])
+}
+
+/// Hash credentials for password-based auth.
+model PasswordCredential {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  hash       String
+  algorithm  String   @default("bcrypt")
+  version    Int      @default(1)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  lastUsedAt DateTime? @map("last_used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Refresh tokens persisted for session continuation.
+model RefreshToken {
+  id          String    @id @default(cuid())
+  userId      String
+  token       String    @unique
+  fingerprint String?
+  userAgent   String?   @map("user_agent")
+  ipAddress   String?   @map("ip_address")
+  expiresAt   DateTime  @map("expires_at")
+  revokedAt   DateTime? @map("revoked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([token, revokedAt])
+}
+
+/// Top-level facility entity representing a healthcare organization.
+model Facility {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  region      String?
+  address     String?
+  contactEmail String?           @map("contact_email")
+  contactPhone String?           @map("contact_phone")
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  profiles    FacilityProfile[]
+  devices     DeviceAssignment[]
+  reports     Report[]
+
+  @@index([slug])
+}
+
+/// Facility-specific user profile metadata.
+model FacilityProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  facilityId        String   @map("facility_id")
+  title             String?
+  department        String?
+  phone             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@index([facilityId])
+}
+
+/// Manufacturer entity representing product owners.
+model Manufacturer {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  registrationNumber String?      @map("registration_number")
+  contactEmail String?            @map("contact_email")
+  contactPhone String?            @map("contact_phone")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  profiles    ManufacturerProfile[]
+  devices     Device[]
+  reports     Report[]
+
+  @@index([slug])
+}
+
+/// Manufacturer-specific profile metadata for users.
+model ManufacturerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  manufacturerId  String   @map("manufacturer_id")
+  jobTitle        String?  @map("job_title")
+  phone           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manufacturer Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+
+  @@index([manufacturerId])
+}
+
+/// Manufacturer devices tracked within the portal.
+model Device {
+  id              String             @id @default(cuid())
+  manufacturerId  String             @map("manufacturer_id")
+  name            String
+  modelNumber     String?            @map("model_number")
+  udi             String?            @unique
+  deviceClass     DeviceClass        @map("device_class")
+  registrationStatus DeviceRegistrationStatus @map("registration_status")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  manufacturer    Manufacturer       @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  assignments     DeviceAssignment[]
+  reports         Report[]
+
+  @@index([manufacturerId])
+  @@index([deviceClass])
+}
+
+/// Device assignments to facilities (inventory / location tracking).
+model DeviceAssignment {
+  id          String    @id @default(cuid())
+  deviceId    String    @map("device_id")
+  facilityId  String    @map("facility_id")
+  status      DeviceAssignmentStatus
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  device   Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@index([facilityId])
+  @@unique([deviceId, facilityId])
+}
+
+/// Report entity representing complaints/adverse events submitted via portal.
+model Report {
+  id               String              @id @default(cuid())
+  trackingId       String              @unique @map("tracking_id")
+  reportType       ReportType          @map("report_type")
+  status           ReportStatus        @default(DRAFT)
+  submittedById    String?             @map("submitted_by_id")
+  facilityId       String?             @map("facility_id")
+  manufacturerId   String?             @map("manufacturer_id")
+  deviceId         String?             @map("device_id")
+  occurredAt       DateTime?           @map("occurred_at")
+  summary          String?
+  details          Json?
+  attachments      Json?
+  createdAt        DateTime            @default(now()) @map("created_at")
+  submittedAt      DateTime?           @map("submitted_at")
+  resolvedAt       DateTime?           @map("resolved_at")
+
+  submittedBy   User?         @relation("ReportSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  facility      Facility?     @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  manufacturer  Manufacturer? @relation(fields: [manufacturerId], references: [id], onDelete: SetNull)
+  device        Device?       @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  auditLogs     AuditLog[]
+
+  @@index([facilityId])
+  @@index([manufacturerId])
+  @@index([deviceId])
+  @@index([reportType])
+}
+
+/// System audit log for authentication and sensitive actions.
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?     @map("user_id")
+  reportId    String?     @map("report_id")
+  event       AuditEvent
+  message     String
+  metadata    Json?
+  ipAddress   String?     @map("ip_address")
+  userAgent   String?     @map("user_agent")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  report Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
+  @@index([event])
+  @@index([createdAt])
+}
+
+/// Optional verification tokens (email, password reset, etc.).
+model VerificationToken {
+  id          String         @id @default(cuid())
+  userId      String         @map("user_id")
+  type        VerificationType
+  token       String         @unique
+  expiresAt   DateTime       @map("expires_at")
+  consumedAt  DateTime?      @map("consumed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+enum UserProfileType {
+  ADMIN
+  FACILITY
+  MANUFACTURER
+}
+
+enum DeviceClass {
+  I
+  II
+  III
+}
+
+enum DeviceRegistrationStatus {
+  REGISTERED
+  PENDING
+  SUSPENDED
+  RETIRED
+}
+
+enum DeviceAssignmentStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETURNED
+}
+
+enum ReportType {
+  COMPLAINT
+  ADVERSE_EVENT
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  ACTION_REQUIRED
+  RESOLVED
+  CLOSED
+}
+
+enum AuditEvent {
+  AUTH_LOGIN_SUCCESS
+  AUTH_LOGIN_FAILURE
+  AUTH_SIGNUP
+  AUTH_PASSWORD_RESET
+  AUTH_TOKEN_REFRESH
+  AUTH_LOGOUT
+  REPORT_CREATED
+  REPORT_UPDATED
+  REPORT_STATUS_CHANGED
+}
+
+enum VerificationType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  INVITE
+}
+
