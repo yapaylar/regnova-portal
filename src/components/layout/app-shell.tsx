@@ -43,6 +43,19 @@ export function AppShell({ children }: AppShellProps) {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-3">
+            <div className="relative hidden w-full max-w-xs md:flex">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                aria-label="Open global search"
+                className="h-9 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                placeholder="Search…"
+                readOnly
+                onClick={() => setSearchOpen(true)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+            </div>
             <div className="flex items-center md:hidden">
               <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                 <SheetTrigger asChild>
@@ -57,19 +70,6 @@ export function AppShell({ children }: AppShellProps) {
                   <Sidebar navigation={navigation} onNavigate={() => setSidebarOpen(false)} />
                 </SheetContent>
               </Sheet>
-            </div>
-            <div className="relative hidden w-full max-w-xs md:flex">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                aria-label="Open global search"
-                className="h-9 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-                placeholder="Search…"
-                readOnly
-                onClick={() => setSearchOpen(true)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeSwitcher />
             </div>
           </div>
         </div>
