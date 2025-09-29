@@ -16,6 +16,7 @@ export const MAIN_NAV: NavItem[] = [
 
 export const ADMIN_NAV: NavItem[] = [
   { title: "Users & Roles", href: "/admin/users", icon: "users" },
+  { title: "Reports", href: "/admin/reports", icon: "file-text" },
   { title: "Devices", href: "/admin/devices", icon: "stethoscope" },
   { title: "PMS", href: "/admin/pms", icon: "cpu" },
   { title: "Audit Log", href: "/admin/audit", icon: "clipboard-list" },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, Bell, ClipboardList, Cpu, FileWarning, Home, Search, Stethoscope, Users } from "lucide-react";
+import { Book, Bell, ClipboardList, Cpu, FileText, FileWarning, Home, Search, Stethoscope, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +11,7 @@ import { RoleSelector } from "@/components/layout/role-selector";
 const ICONS = {
   home: Home,
   "file-warning": FileWarning,
+  "file-text": FileText,
   bell: Bell,
   search: Search,
   book: Book,
