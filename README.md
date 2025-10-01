@@ -90,6 +90,24 @@ If you do not have a Redis instance for rate limiting yet, omit `RATE_LIMIT_REDI
 
 ## Production Checklist
 
+### Ensure baseline manufacturer in production database
+
+If the production PostgreSQL database is empty (e.g. after a reset), run the following helper to upsert a default manufacturer so admin device and PMS forms can create records:
+
+```bash
+DATABASE_URL="postgres://USER:PASSWORD@HOST:PORT/DATABASE" npx ts-node --esm prisma/scripts/create-demo-manufacturer.ts
+```
+
+You can override defaults via environment variables:
+
+- `MANUFACTURER_SLUG`
+- `MANUFACTURER_NAME`
+- `MANUFACTURER_REGISTRATION_NUMBER`
+- `MANUFACTURER_EMAIL`
+- `MANUFACTURER_PHONE`
+
+The script is idempotent and prints the resulting manufacturer ID/slug for use in the admin forms.
+
 - [ ] Provision PostgreSQL instance and set `DATABASE_URL`
 - [ ] Run `npm run prisma:generate` / `npm run prisma:migrate:deploy`
 - [ ] Configure `AUTH_ACCESS_TOKEN_SECRET`, `AUTH_REFRESH_TOKEN_SECRET`, TTL values
