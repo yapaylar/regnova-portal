@@ -10,43 +10,70 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PMS_VISITS } from "@/data/mock";
+import { useAdminPmsVisits, useCreatePmsVisitMutation } from "@/hooks/use-admin-pms";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useToast } from "@/components/ui/use-toast";
 
 const visitSchema = z.object({
   visitDate: z.string({ required_error: "Visit date is required" }),
   organization: z.string().min(2, "Organization is required"),
+  facilityId: z.string().optional().nullable(),
   notes: z.string().min(5, "Enter visit summary"),
-  files: z.string().optional(),
+  attachments: z.string().optional(),
 });
 
 export default function PmsPage() {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const { toast } = useToast();
+  const { data, isLoading, isError } = useAdminPmsVisits({ search: search.length ? search : undefined });
+  const createVisit = useCreatePmsVisitMutation();
   const form = useForm({
     resolver: zodResolver(visitSchema),
     defaultValues: {
       visitDate: "",
       organization: "",
+      facilityId: "",
       notes: "",
-      files: "",
+      attachments: "",
     },
   });
 
-  const onSubmit = form.handleSubmit((values) => {
-    console.log("Log visit", values);
-    setOpen(false);
-    form.reset();
+  const onSubmit = form.handleSubmit(async (values) => {
+    try {
+      await createVisit.mutateAsync({
+        visitDate: values.visitDate,
+        organization: values.organization,
+        facilityId: values.facilityId ? values.facilityId : null,
+        notes: values.notes,
+        attachments: values.attachments,
+      });
+      toast.success("Visit logged");
+      setOpen(false);
+      form.reset();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to log visit";
+      toast.error("Could not log visit", { description: message });
+    }
   });
 
   return (
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle>PMS Visits</CardTitle>
-            <CardDescription>Track post-market surveillance visits and documentation.</CardDescription>
+          <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle>PMS Visits</CardTitle>
+              <CardDescription>Track post-market surveillance visits and documentation.</CardDescription>
+            </div>
+            <Input
+              className="w-full md:w-64"
+              placeholder="Search visits"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -90,6 +117,19 @@ export default function PmsPage() {
                   />
                   <FormField
                     control={form.control}
+                    name="facilityId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facility ID (optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Facility identifier" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
@@ -103,19 +143,21 @@ export default function PmsPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="files"
+                    name="attachments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Files (optional)</FormLabel>
+                        <FormLabel>Attachments (comma separated)</FormLabel>
                         <FormControl>
-                          <Input placeholder="AuditReport.pdf" {...field} />
+                          <Input placeholder="AuditReport.pdf, VisitNotes.docx" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <DialogFooter>
-                    <Button type="submit">Save Visit</Button>
+                    <Button type="submit" disabled={createVisit.isPending}>
+                      {createVisit.isPending ? "Saving..." : "Save Visit"}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -123,40 +165,38 @@ export default function PmsPage() {
           </Dialog>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="max-h-[600px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Files</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {PMS_VISITS.map((visit) => (
-                  <TableRow key={visit.id}>
-                    <TableCell>{visit.visitDate}</TableCell>
-                    <TableCell>{visit.organization}</TableCell>
-                    <TableCell className="max-w-xs whitespace-normal text-sm text-muted-foreground">
-                      {visit.notes}
-                    </TableCell>
-                    <TableCell>
-                      {visit.files.length ? (
-                        <ul className="space-y-1 text-xs text-primary">
-                          {visit.files.map((file) => (
-                            <li key={file}>{file}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">No files</span>
-                      )}
-                    </TableCell>
+          {isLoading ? (
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">Loading visits…</div>
+          ) : isError ? (
+            <div className="flex h-48 items-center justify-center text-sm text-destructive">Failed to load visits.</div>
+          ) : !data || data.items.length === 0 ? (
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No visits found.</div>
+          ) : (
+            <ScrollArea className="max-h-[600px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Facility</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
+                </TableHeader>
+                <TableBody>
+                  {data.items.map((visit) => (
+                    <TableRow key={visit.id}>
+                      <TableCell>{new Date(visit.visitDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{visit.organization}</TableCell>
+                      <TableCell className="max-w-xs whitespace-pre-wrap text-sm text-muted-foreground">
+                        {visit.notes}
+                      </TableCell>
+                      <TableCell>{visit.facility?.name ?? "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
         </CardContent>
       </Card>
     </div>

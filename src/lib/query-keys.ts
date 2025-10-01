@@ -25,9 +25,11 @@ export const trackKeys = {
 };
 
 export const adminKeys = {
+  reports: () => ["admin", "reports"] as const,
   users: () => ["admin", "users"] as const,
   devices: () => ["admin", "devices"] as const,
   pms: () => ["admin", "pms"] as const,
   auditLog: () => ["admin", "audit-log"] as const,
+  metadata: () => ["admin", "metadata"] as const,
 };
 

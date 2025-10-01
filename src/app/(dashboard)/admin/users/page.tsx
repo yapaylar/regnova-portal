@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { USERS } from "@/data/mock";
+import { useAdminUsers } from "@/hooks/use-admin-users";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,8 @@ const inviteSchema = z.object({
 
 export default function UsersPage() {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const { data, isLoading, isError } = useAdminUsers({ search: search.length ? search : undefined });
   const form = useForm({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
@@ -47,9 +49,17 @@ export default function UsersPage() {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle>Users & Roles</CardTitle>
-            <CardDescription>Manage portal access, roles, and organizations.</CardDescription>
+          <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle>Users & Roles</CardTitle>
+              <CardDescription>Manage portal access, roles, and organizations.</CardDescription>
+            </div>
+            <Input
+              className="w-full md:w-64"
+              placeholder="Search users"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -135,29 +145,40 @@ export default function UsersPage() {
           </Dialog>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="max-h-[600px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Organization</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {USERS.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>{user.organization}</TableCell>
+          {isLoading ? (
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">Loading users…</div>
+          ) : isError ? (
+            <div className="flex h-48 items-center justify-center text-sm text-destructive">Failed to load users.</div>
+          ) : !data || data.items.length === 0 ? (
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No users found.</div>
+          ) : (
+            <ScrollArea className="max-h-[600px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Last Login</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
+                </TableHeader>
+                <TableBody>
+                  {data.items.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.profileType}</TableCell>
+                      <TableCell>{user.organization ?? user.facilityProfile?.facility.name ?? "—"}</TableCell>
+                      <TableCell>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
         </CardContent>
+        <CardContent className="hidden" />
       </Card>
     </div>
   );

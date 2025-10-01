@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["https://regnova-portal-*.vercel.app"],
+    },
+  },
 };
 
 export default nextConfig;

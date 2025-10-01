@@ -126,7 +126,9 @@ export async function POST(request: Request) {
 
       await tx.auditLog.create({
         data: {
-          userId: user.id,
+          user: {
+            connect: { id: user.id },
+          },
           event: "AUTH_SIGNUP",
           message: `User ${user.email} signed up as ${parsed.profileType}`,
           ipAddress,

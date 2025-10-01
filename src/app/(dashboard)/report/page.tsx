@@ -182,7 +182,7 @@ const stepContent = useMemo(() => {
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs value={activeStep} className="w-full">
-              <TabsList className="grid w-full grid-cols-1 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+              <TabsList className="flex w-full gap-2 overflow-x-auto sm:grid sm:grid-cols-4 lg:grid-cols-7">
                 {reportStepOrder.map((step) => (
                   <TabsTrigger
                     key={step}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -143,9 +143,9 @@ function TrackComplaintContent() {
 
 export default function TrackComplaintPage() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <React.Suspense fallback={<LoadingState />}>
       <TrackComplaintContent />
-    </Suspense>
+    </React.Suspense>
   );
 }
 

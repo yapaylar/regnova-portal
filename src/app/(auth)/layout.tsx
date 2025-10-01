@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </Link>
         </div>
       </header>
-      <main className="flex flex-1 items-center justify-center px-0 py-12 sm:px-6">
+      <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
         <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl border bg-card shadow-xl">
           <div className="hidden flex-1 flex-col gap-10 bg-primary/5 p-10 lg:flex">
             <div className="space-y-4">
@@ -38,7 +38,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <div className="flex flex-1 items-center justify-center p-6 sm:p-10">
-            <div className="w-full max-w-md space-y-6">{children}</div>
+            <div className="w-full max-w-md space-y-6 px-1 sm:px-0">{children}</div>
           </div>
         </div>
       </main>

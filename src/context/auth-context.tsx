@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type UserProfileType = "admin" | "facility" | "manufacturer";
 
@@ -18,7 +18,8 @@ export type AuthUser = {
 
 type AuthSession = {
   user: AuthUser;
-  refreshToken?: string | null;
+  refreshToken: string | null;
+  rememberMe: boolean;
 };
 
 type AuthContextValue = {
@@ -31,6 +32,8 @@ type AuthContextValue = {
   updateUser: (patch: Partial<AuthUser>) => void;
   clearSession: () => void;
   logout: (fingerprint?: string | null) => Promise<void>;
+  refreshSession: () => Promise<boolean>;
+  fetchWithAuth: (input: RequestInfo | URL, init?: RequestInit & { skipAuthRetry?: boolean }) => Promise<Response>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -52,7 +55,11 @@ function loadStoredSession(): AuthSession | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AuthSession;
-    return parsed;
+    return {
+      ...parsed,
+      refreshToken: parsed.refreshToken ?? null,
+      rememberMe: parsed.rememberMe ?? false,
+    };
   } catch (error) {
     console.error("Failed to parse stored auth session", error);
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -67,6 +74,7 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSessionState] = useState<AuthSession | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const refreshPromiseRef = useRef<Promise<boolean> | null>(null);
 
   useEffect(() => {
     const stored = loadStoredSession();
@@ -126,6 +134,84 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [session, clearSession],
   );
 
+  const refreshSession = useCallback(async () => {
+    if (!session?.refreshToken) {
+      clearSession();
+      return false;
+    }
+
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
+    }
+
+    const refreshPromise = (async () => {
+      try {
+        const response = await fetch("/api/auth/refresh", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            refreshToken: session.refreshToken,
+          }),
+        });
+
+        if (!response.ok) {
+          clearSession();
+          return false;
+        }
+
+        const data = await response.json();
+
+        setSession({
+          user: data.user,
+          refreshToken: data.refreshToken ?? session.refreshToken,
+          rememberMe: session.rememberMe,
+        });
+
+        return true;
+      } catch (error) {
+        console.error("Failed to refresh session", error);
+        clearSession();
+        return false;
+      } finally {
+        refreshPromiseRef.current = null;
+      }
+    })();
+
+    refreshPromiseRef.current = refreshPromise;
+    return refreshPromise;
+  }, [session, setSession, clearSession]);
+
+  const fetchWithAuth = useCallback<
+    AuthContextValue["fetchWithAuth"]
+  >(
+    async (input, init) => {
+      const response = await fetch(input, {
+        ...init,
+        credentials: init?.credentials ?? "include",
+      });
+
+      if (response.status !== 401 || init?.skipAuthRetry === true) {
+        return response;
+      }
+
+      const refreshed = await refreshSession();
+
+      if (!refreshed) {
+        return response;
+      }
+
+      return fetch(input, {
+        ...init,
+        credentials: init?.credentials ?? "include",
+        skipAuthRetry: true,
+      } as RequestInit & { skipAuthRetry?: boolean });
+    },
+    [refreshSession],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
@@ -137,8 +223,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       updateUser,
       clearSession,
       logout,
+      refreshSession,
+      fetchWithAuth,
     }),
-    [session, isBootstrapping, setSession, updateUser, clearSession, logout],
+    [session, isBootstrapping, setSession, updateUser, clearSession, logout, refreshSession, fetchWithAuth],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

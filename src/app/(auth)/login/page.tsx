@@ -52,7 +52,8 @@ export default function LoginPage() {
 
       setSession({
         user: data.user,
-        refreshToken: values.rememberMe ? data.refreshToken : null,
+        refreshToken: data.refreshToken ?? null,
+        rememberMe: values.rememberMe,
       });
 
       toast.success("Welcome back", {

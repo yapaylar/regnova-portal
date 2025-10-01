@@ -35,8 +35,14 @@ export async function POST(request: Request) {
 
       await tx.auditLog.create({
         data: {
-          userId: sessionUser?.id ?? null,
-          reportId: created.id,
+          user: sessionUser
+            ? {
+                connect: { id: sessionUser.id },
+              }
+            : undefined,
+          report: {
+            connect: { id: created.id },
+          },
           event: "REPORT_CREATED",
           message: `Report ${created.trackingId} submitted`,
           metadata: {

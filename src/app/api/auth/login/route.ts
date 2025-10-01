@@ -8,7 +8,7 @@ import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 import { getPermissionsForRole } from "@/lib/auth/permissions";
 import { setAccessCookie, setRefreshCookie, ACCESS_COOKIE_MAX_AGE, REFRESH_COOKIE_MAX_AGE } from "@/lib/auth/session";
 import { HttpError, createErrorResponse, toHttpError } from "@/lib/http/errors";
-import { generateRefreshToken, getClientIp, getUserAgent } from "@/lib/auth/utils";
+import { getClientIp, getUserAgent } from "@/lib/auth/utils";
 import { checkRateLimit } from "@/lib/rate-limit/redis";
 import { withRateLimitHeaders } from "@/lib/http/response";
 
@@ -78,7 +78,9 @@ export async function POST(request: Request) {
     if (!passwordValid) {
       await prisma.auditLog.create({
         data: {
-          userId: user.id,
+          user: {
+            connect: { id: user.id },
+          },
           event: "AUTH_LOGIN_FAILURE",
           message: `Failed login attempt for ${user.email}`,
           metadata: { reason: "invalid_credentials" },
@@ -95,8 +97,6 @@ export async function POST(request: Request) {
     }
 
     const permissions = getPermissionsForRole(user.profileType.toLowerCase() as "admin" | "facility" | "manufacturer");
-    const refreshTokenValue = generateRefreshToken();
-
     const facilityId = user.facilityProfile?.facilityId ?? null;
     const manufacturerId = user.manufacturerProfile?.manufacturerId ?? null;
 
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       await tx.refreshToken.create({
         data: {
           userId: user.id,
-          token: refreshTokenValue,
+          token: refreshToken,
           fingerprint: parsed.fingerprint,
           userAgent,
           ipAddress,
@@ -137,7 +137,9 @@ export async function POST(request: Request) {
 
       await tx.auditLog.create({
         data: {
-          userId: user.id,
+          user: {
+            connect: { id: user.id },
+          },
           event: "AUTH_LOGIN_SUCCESS",
           message: `User ${user.email} logged in`,
           ipAddress,
@@ -153,7 +155,7 @@ export async function POST(request: Request) {
     if (parsed.rememberMe) {
       setRefreshCookie(refreshToken, REFRESH_COOKIE_MAX_AGE);
     } else {
-      setRefreshCookie(refreshTokenValue, 0);
+      setRefreshCookie(refreshToken, 0);
     }
 
     const response = NextResponse.json(

@@ -45,7 +45,11 @@ export async function POST(request: Request) {
 
       await tx.auditLog.create({
         data: {
-          userId: existing.userId,
+          user: existing.userId
+            ? {
+                connect: { id: existing.userId },
+              }
+            : undefined,
           event: "AUTH_LOGOUT",
           message: "User logged out",
           metadata: {

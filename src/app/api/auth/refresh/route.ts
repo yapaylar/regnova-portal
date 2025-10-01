@@ -114,7 +114,9 @@ export async function POST(request: Request) {
 
         await tx.auditLog.create({
           data: {
-            userId: storedToken.user.id,
+            user: {
+              connect: { id: storedToken.user.id },
+            },
             event: "AUTH_TOKEN_REFRESH",
             message: `Refresh token rotated for user ${storedToken.user.email}`,
             ipAddress: getClientIp(headers),

@@ -1,26 +1,26 @@
 "use client";
 
-import { ArrowUpRight, BarChart3, ListChecks, RefreshCw, ShieldAlert, ClipboardList, Layers, Search } from "lucide-react";
+import { ArrowUpRight, BarChart3, ClipboardList, Layers, ListChecks, RefreshCw, Search, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DASHBOARD_METRICS, RECENT_COMPLAINTS, RECALLS } from "@/data/mock";
-import { formatDate } from "@/lib/formatters";
-
-const TAB_TRIGGER_CLASSES = "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground";
+import { DASHBOARD_METRICS } from "@/data/mock";
+import { useRole } from "@/context/role-context";
 
 export default function DashboardPage() {
+  const { name } = useRole();
+  const greetingName = name?.split(" ")[0] ?? "there";
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
+        <h1 className="text-2xl font-semibold">Welcome back, {greetingName}!</h1>
         <p className="text-muted-foreground text-sm">
           Monitor post-market activity, resolve complaints, and stay compliant with confidence.
         </p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="mx-auto grid w-full max-w-5xl gap-4 sm:grid-cols-2 md:grid-cols-3">
         <FeatureCard
           icon={ClipboardList}
           title="Report an Issue"
@@ -93,92 +93,21 @@ export default function DashboardPage() {
       </section>
 
       <section>
-        <Tabs defaultValue="complaints" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 sm:w-auto">
-            <TabsTrigger value="complaints" className={TAB_TRIGGER_CLASSES}>
-              Recent Complaints
-            </TabsTrigger>
-            <TabsTrigger value="recalls" className={TAB_TRIGGER_CLASSES}>
-              Recent Recalls
-            </TabsTrigger>
-            <TabsTrigger value="quick" className={TAB_TRIGGER_CLASSES}>
-              Quick Actions
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="complaints" className="space-y-3">
-            {RECENT_COMPLAINTS.map((complaint) => (
-              <Card key={complaint.id} className="border-muted bg-muted/10">
-                <CardHeader className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="text-base">{complaint.patientName}</CardTitle>
-                    <CardDescription>
-                      {complaint.facility} • {formatDate(complaint.submittedAt)}
-                    </CardDescription>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    {complaint.status}
-                  </span>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  {complaint.summary}
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="recalls" className="space-y-3">
-            {RECALLS.slice(0, 4).map((recall) => (
-              <Card key={recall.id} className="border-muted bg-muted/10">
-                <CardHeader className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="text-base">{recall.device}</CardTitle>
-                    <CardDescription>
-                      {recall.manufacturer} • {formatDate(recall.date)}
-                    </CardDescription>
-                  </div>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                    {recall.actionType}
-                  </span>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{recall.description}</p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1">
-                      {recall.region}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1">
-                      Status: {recall.status}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="quick">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <QuickAction
-                icon={ShieldAlert}
-                title="Start Report"
-                description="Log a new complaint or adverse event in minutes."
-                href="/report"
-              />
-              <QuickAction
-                icon={RefreshCw}
-                title="View Recalls"
-                description="Review active recalls and corrective actions."
-                href="/recalls"
-              />
-              <QuickAction
-                icon={ListChecks}
-                title="Track by ID"
-                description="Monitor complaint progress with a tracking ID."
-                href="/track"
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle>Need a deeper dive?</CardTitle>
+            <CardDescription>Visit the reports workspace to review complaints, recalls, and quick actions.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/admin/reports"
+              className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:brightness-105"
+            >
+              Go to Reports
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
@@ -197,32 +126,6 @@ function MetricIcon({ metricId }: { metricId: string }) {
     default:
       return null;
   }
-}
-
-type QuickActionProps = {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  title: string;
-  description: string;
-  href: string;
-};
-
-function QuickAction({ icon: Icon, title, description, href }: QuickActionProps) {
-  return (
-    <Link
-      href={href}
-      className="flex h-full flex-col rounded-lg border bg-card p-4 transition hover:border-primary/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-    >
-      <div className="flex items-center gap-3">
-        <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-5" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </Link>
-  );
 }
 
 type FeatureCardProps = {
@@ -269,30 +172,36 @@ function FeatureCard({ icon: Icon, title, description, helper, ctaText, href, ac
   const avatarShades = [accent.surface, accent.soft, "rgba(0,0,0,0.04)"]
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card/95 shadow-[0_24px_60px_-35px_rgba(15,25,55,0.55)] transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_70px_-30px_rgba(15,25,55,0.45)]" style={{ borderColor: accent.border }}>
+    <Card
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card/90 shadow-[0_16px_40px_-28px_rgba(15,25,55,0.4)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_20px_48px_-26px_rgba(15,25,55,0.35)]"
+      style={{ borderColor: accent.border }}
+    >
       <div className="pointer-events-none absolute inset-0 opacity-80 transition-opacity duration-500 group-hover:opacity-100" style={gradientLayerStyle} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/12 via-transparent to-transparent" />
-      <CardHeader className="relative z-10 flex flex-col items-center gap-5 pb-0 text-center">
+      <CardHeader className="relative z-10 flex flex-col items-center gap-4 pb-0 text-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="inline-flex size-12 items-center justify-center rounded-2xl shadow-lg shadow-black/5 ring-1 ring-white/60 transition-transform duration-300 group-hover:-translate-y-1" style={iconStyle}>
-            <Icon className="size-5" />
+          <div
+            className="inline-flex size-10 items-center justify-center rounded-2xl shadow-lg shadow-black/5 ring-1 ring-white/60 transition-transform duration-300 group-hover:-translate-y-0.5"
+            style={iconStyle}
+          >
+            <Icon className="size-4" />
           </div>
           <div className="flex flex-col gap-2">
-            <CardTitle className="text-xl font-semibold tracking-tight text-foreground">{title}</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-tight text-foreground">{title}</CardTitle>
             <CardDescription className="text-sm leading-relaxed text-foreground/70">
               {description}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="relative z-10 mt-auto flex flex-col gap-6 pt-6">
-        <div className="rounded-2xl border p-4 text-sm leading-relaxed text-foreground/70" style={helperStyle}>
+      <CardContent className="relative z-10 mt-auto flex flex-col gap-4 pt-5">
+        <div className="rounded-2xl border p-3 text-sm leading-relaxed text-foreground/70" style={helperStyle}>
           {helper}
         </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href={href}
-            className="group/cta inline-flex flex-shrink-0 items-center gap-2 rounded-full px-6 py-2 text-sm font-medium whitespace-nowrap transition hover:brightness-105"
+            className="group/cta inline-flex flex-shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium whitespace-nowrap transition hover:brightness-105"
             style={ctaStyle}
           >
             {ctaText}   
@@ -302,7 +211,7 @@ function FeatureCard({ icon: Icon, title, description, helper, ctaText, href, ac
             {avatarShades.map((shade, idx) => (
               <span
                 key={idx}
-                className="size-7 rounded-full border border-white/80"
+                className="size-6 rounded-full border border-white/80"
                 style={{ backgroundColor: shade }}
               />
             ))}

@@ -178,50 +178,7 @@ export type User = {
   organization: string;
 };
 
-export const USERS: User[] = [
-  {
-    id: "USR-001",
-    name: "Laura Wright",
-    email: "laura.wright@regnova.com",
-    role: "Admin",
-    organization: "Regnova HQ",
-  },
-  {
-    id: "USR-002",
-    name: "David Kim",
-    email: "david.kim@centralvalley.org",
-    role: "Facility",
-    organization: "Central Valley Hospital",
-  },
-  {
-    id: "USR-003",
-    name: "Priya Nair",
-    email: "priya.nair@northview.org",
-    role: "Facility",
-    organization: "Northview Hospital",
-  },
-  {
-    id: "USR-004",
-    name: "Ethan Martinez",
-    email: "ethan.martinez@regnova.com",
-    role: "Manufacturer",
-    organization: "Regnova Manufacturing",
-  },
-  {
-    id: "USR-005",
-    name: "Sophia Chen",
-    email: "sophia.chen@westsideclinic.org",
-    role: "Facility",
-    organization: "Westside Clinic",
-  },
-  {
-    id: "USR-006",
-    name: "Mark Rossi",
-    email: "mark.rossi@healthtech.com",
-    role: "Manufacturer",
-    organization: "HealthTech Corp",
-  },
-];
+export const USERS: User[] = [];
 
 export type Device = {
   id: string;
@@ -232,40 +189,7 @@ export type Device = {
   notes?: string;
 };
 
-export const DEVICES: Device[] = [
-  {
-    id: "DEV-001",
-    name: "Regnova Monitor 5",
-    manufacturer: "Regnova",
-    class: "II",
-    registrationStatus: "Registered",
-    notes: "Firmware 2.3 deployed",
-  },
-  {
-    id: "DEV-002",
-    name: "HealthScan Analyzer",
-    manufacturer: "HealthTech Corp",
-    class: "III",
-    registrationStatus: "Registered",
-    notes: "Annual maintenance due Nov 2025",
-  },
-  {
-    id: "DEV-003",
-    name: "SterileFlow Pump",
-    manufacturer: "Regnova",
-    class: "II",
-    registrationStatus: "Pending",
-    notes: "Awaiting final validation",
-  },
-  {
-    id: "DEV-004",
-    name: "Insight Imaging Suite",
-    manufacturer: "Mediview",
-    class: "III",
-    registrationStatus: "Suspended",
-    notes: "Recall investigation in progress",
-  },
-];
+export const DEVICES: Device[] = [];
 
 export type PmsVisit = {
   id: string;
@@ -275,22 +199,7 @@ export type PmsVisit = {
   files: string[];
 };
 
-export const PMS_VISITS: PmsVisit[] = [
-  {
-    id: "PMS-001",
-    visitDate: "2025-08-30",
-    organization: "Central Valley Hospital",
-    notes: "Quarterly audit completed. Minor documentation updates required.",
-    files: ["AuditSummary_Aug2025.pdf"],
-  },
-  {
-    id: "PMS-002",
-    visitDate: "2025-07-14",
-    organization: "Northview Hospital",
-    notes: "Follow-up on corrective actions; all items closed.",
-    files: ["FollowUpReport_July2025.pdf"],
-  },
-];
+export const PMS_VISITS: PmsVisit[] = [];
 
 export type AuditLogEntry = {
   id: string;
@@ -302,31 +211,5 @@ export type AuditLogEntry = {
   after?: string;
 };
 
-export const AUDIT_LOG: AuditLogEntry[] = [
-  {
-    id: "LOG-001",
-    timestamp: "2025-09-20T10:15:00Z",
-    user: "Laura Wright",
-    action: "Updated",
-    entity: "Device",
-    before: '{"registrationStatus":"Pending"}',
-    after: '{"registrationStatus":"Registered"}',
-  },
-  {
-    id: "LOG-002",
-    timestamp: "2025-09-19T16:32:00Z",
-    user: "David Kim",
-    action: "Created",
-    entity: "Complaint",
-    after: '{"id":"CMP-2025-0012"}',
-  },
-  {
-    id: "LOG-003",
-    timestamp: "2025-09-18T09:42:00Z",
-    user: "Priya Nair",
-    action: "Uploaded",
-    entity: "PMS Report",
-    after: '{"file":"PMS_Audit_Priya.pdf"}',
-  },
-];
+export const AUDIT_LOG: AuditLogEntry[] = [];
 

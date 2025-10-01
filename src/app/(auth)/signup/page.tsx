@@ -61,6 +61,7 @@ export default function SignupPage() {
       setSession({
         user: data.user,
         refreshToken: data.refreshToken,
+        rememberMe: true,
       });
 
       toast.success("Account created", {
