@@ -4,6 +4,7 @@ import { verifyAccessToken } from "@/lib/auth/jwt";
 
 const ACCESS_COOKIE_NAME = "regnova.access";
 const REFRESH_COOKIE_NAME = "regnova.refresh";
+const FINGERPRINT_COOKIE_NAME = "regnova.fp";
 
 export const ACCESS_COOKIE_MAX_AGE = 60 * 15; // 15 minutes
 export const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -43,6 +44,13 @@ export function clearSessionCookies() {
     path: "/",
     maxAge: 0,
   });
+  cookies().set(FINGERPRINT_COOKIE_NAME, "", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
 }
 
 export function getRefreshCookie() {
@@ -51,6 +59,31 @@ export function getRefreshCookie() {
 
 export function getAccessCookie() {
   return cookies().get(ACCESS_COOKIE_NAME)?.value;
+}
+
+export function loadFingerprintFromCookies() {
+  return cookies().get(FINGERPRINT_COOKIE_NAME)?.value ?? undefined;
+}
+
+export function persistFingerprintCookie(fingerprint?: string | null) {
+  if (!fingerprint) {
+    cookies().set(FINGERPRINT_COOKIE_NAME, "", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+    return;
+  }
+
+  cookies().set(FINGERPRINT_COOKIE_NAME, fingerprint, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: REFRESH_COOKIE_MAX_AGE,
+  });
 }
 
 export type SessionUser = {

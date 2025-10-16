@@ -4,6 +4,10 @@ export function generateRefreshToken() {
   return crypto.randomBytes(48).toString("base64url");
 }
 
+export function generateVerificationToken() {
+  return crypto.randomBytes(32).toString("base64url");
+}
+
 export function getFingerprint(metadata: Record<string, unknown> | undefined) {
   if (!metadata) return null;
   const value = metadata["fingerprint"];

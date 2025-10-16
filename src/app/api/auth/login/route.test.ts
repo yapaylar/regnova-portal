@@ -29,6 +29,8 @@ jest.mock("@/lib/auth/permissions", () => ({ getPermissionsForRole: jest.fn().mo
 jest.mock("@/lib/auth/session", () => ({
   setAccessCookie: jest.fn(),
   setRefreshCookie: jest.fn(),
+  persistFingerprintCookie: jest.fn(),
+  loadFingerprintFromCookies: jest.fn().mockReturnValue("fingerprint") ,
   ACCESS_COOKIE_MAX_AGE: 900,
   REFRESH_COOKIE_MAX_AGE: 2592000,
 }));

@@ -246,6 +246,7 @@ model VerificationToken {
   expiresAt  DateTime         @map("expires_at")
   consumedAt DateTime?        @map("consumed_at")
   createdAt  DateTime         @default(now()) @map("created_at")
+  metadata   Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

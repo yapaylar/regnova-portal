@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="https://regnovagh.com" className="flex items-center gap-3" rel="noopener noreferrer" target="_blank">
             <Image src="/logo.svg" alt="Regnova" width={140} height={40} className="h-10 w-auto" />
             <span className="hidden text-sm text-muted-foreground md:block">Post-Market Surveillance Portal</span>
           </Link>

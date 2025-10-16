@@ -11,13 +11,14 @@ const LIMIT_CONFIG: Record<RateLimitKey["section"], { window: SlidingWindow; poi
   "auth:signup": { window: "1h", points: 5 },
   "auth:login": { window: "5m", points: 10 },
   "auth:refresh": { window: "5m", points: 30 },
+  "auth:forgot": { window: "15m", points: 5 },
 };
 
 const FALLBACK_LIMIT: { window: SlidingWindow; points: number } = { window: "1m", points: 10 };
 
 export type RateLimitKey = {
   identifier: string;
-  section: "auth:signup" | "auth:login" | "auth:refresh";
+  section: "auth:signup" | "auth:login" | "auth:refresh" | "auth:forgot";
 };
 
 export async function checkRateLimit({ identifier, section }: RateLimitKey) {

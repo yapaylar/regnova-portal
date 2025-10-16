@@ -72,6 +72,30 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: emailValidator,
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string({ required_error: "Reset token is required" }).min(20),
+    password: passwordValidator,
+    confirmPassword: z.string({ required_error: "Confirm password is required" }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 export const refreshSchema = z.object({
   refreshToken: z.string({ required_error: "Refresh token is required" }).min(20),
   fingerprint: z.string().min(8).max(128).optional(),

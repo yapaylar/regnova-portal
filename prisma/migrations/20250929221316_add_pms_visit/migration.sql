@@ -23,3 +23,5 @@ CREATE INDEX "Device_registration_status_idx" ON "public"."Device"("registration
 
 -- AddForeignKey
 ALTER TABLE "public"."PmsVisit" ADD CONSTRAINT "PmsVisit_facility_id_fkey" FOREIGN KEY ("facility_id") REFERENCES "public"."Facility"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "VerificationToken" ADD COLUMN "metadata" JSON;

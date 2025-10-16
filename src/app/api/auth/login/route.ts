@@ -6,7 +6,7 @@ import { loginSchema } from "@/lib/auth/schemas";
 import { verifyPassword } from "@/lib/auth/hash";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 import { getPermissionsForRole } from "@/lib/auth/permissions";
-import { setAccessCookie, setRefreshCookie, ACCESS_COOKIE_MAX_AGE, REFRESH_COOKIE_MAX_AGE } from "@/lib/auth/session";
+import { loadFingerprintFromCookies, persistFingerprintCookie, setAccessCookie, setRefreshCookie, ACCESS_COOKIE_MAX_AGE, REFRESH_COOKIE_MAX_AGE } from "@/lib/auth/session";
 import { HttpError, createErrorResponse, toHttpError } from "@/lib/http/errors";
 import { getClientIp, getUserAgent } from "@/lib/auth/utils";
 import { checkRateLimit } from "@/lib/rate-limit/redis";
@@ -123,12 +123,14 @@ export async function POST(request: Request) {
     const userAgent = getUserAgent(headers);
     const ipAddress = getClientIp(headers);
 
+    const fingerprint = parsed.fingerprint ?? loadFingerprintFromCookies();
+
     await prisma.$transaction(async (tx) => {
       await tx.refreshToken.create({
         data: {
           userId: user.id,
           token: refreshToken,
-          fingerprint: parsed.fingerprint,
+          fingerprint,
           userAgent,
           ipAddress,
           expiresAt: new Date(Date.now() + REFRESH_COOKIE_MAX_AGE * 1000),
@@ -137,9 +139,7 @@ export async function POST(request: Request) {
 
       await tx.auditLog.create({
         data: {
-          user: {
-            connect: { id: user.id },
-          },
+          userId: user.id,
           event: "AUTH_LOGIN_SUCCESS",
           message: `User ${user.email} logged in`,
           ipAddress,
@@ -152,6 +152,7 @@ export async function POST(request: Request) {
     });
 
     setAccessCookie(accessToken, ACCESS_COOKIE_MAX_AGE);
+    persistFingerprintCookie(fingerprint);
     if (parsed.rememberMe) {
       setRefreshCookie(refreshToken, REFRESH_COOKIE_MAX_AGE);
     } else {
