@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { forgotPasswordSchema } from "@/lib/auth/schemas";
 import { HttpError, createErrorResponse, toHttpError } from "@/lib/http/errors";
 import { generateVerificationToken, getClientIp, getUserAgent } from "@/lib/auth/utils";
-import { checkRateLimit } from "@?/lib/rate-limit/redis";
-import { withRateLimitHeaders } from "@?/lib/http/response";
+import { checkRateLimit } from "@/lib/rate-limit/redis";
+import { withRateLimitHeaders } from "@/lib/http/response";
 import { sendPasswordResetEmail } from "@/lib/notifications/email";
 
 const PASSWORD_RESET_WINDOW_MINUTES = 60;

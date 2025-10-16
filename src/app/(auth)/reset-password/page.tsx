@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
@@ -19,7 +19,7 @@ type ResetPasswordFormValues = {
   confirmPassword: string;
 };
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -149,6 +149,14 @@ export default function ResetPasswordPage() {
         Remembered your credentials? <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="py-10 text-center text-muted-foreground">Loading reset form…</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
 
