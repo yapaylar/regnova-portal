@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-
 import { requireAdminUser } from "@/lib/auth/guards";
-import { toHttpError, createErrorResponse } from "@/lib/http/errors";
 import { fetchFacilityOptions } from "@/lib/admin/data-access";
+import { toHttpError, createErrorResponse } from "@/lib/http/errors";
 
-export const runtime = "nodejs";
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
     await requireAdminUser();
-
-    const url = new URL(request.url);
-    const search = url.searchParams.get("search") ?? undefined;
-
-    const facilities = await fetchFacilityOptions(search);
-
+    const facilities = await fetchFacilityOptions();
     return NextResponse.json(facilities);
   } catch (error) {
     const httpError = toHttpError(error);
