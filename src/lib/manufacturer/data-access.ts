@@ -52,6 +52,11 @@ function buildPaginationResult<T>(items: T[], total: number, page: number, pageS
 export async function fetchManufacturerProductList(filters: ManufacturerProductFilters, pagination: PaginationOptions = {}) {
   const { page, pageSize, skip } = normalizePagination(pagination);
 
+  // If no manufacturerId, return empty result (pending approval)
+  if (!filters.manufacturerId) {
+    return buildPaginationResult([], 0, page, pageSize);
+  }
+
   const where: Prisma.DeviceWhereInput = {
     manufacturerId: filters.manufacturerId,
   };
@@ -110,7 +115,11 @@ export async function fetchManufacturerProductList(filters: ManufacturerProductF
   return buildPaginationResult(items, total, page, pageSize);
 }
 
-export async function createManufacturerProduct(manufacturerId: string, input: ManufacturerProductCreateInput) {
+export async function createManufacturerProduct(manufacturerId: string | null, input: ManufacturerProductCreateInput) {
+  if (!manufacturerId) {
+    throw new Error("Manufacturer profile pending approval. Please contact admin.");
+  }
+
   const device = await prisma.device.create({
     data: {
       manufacturerId,

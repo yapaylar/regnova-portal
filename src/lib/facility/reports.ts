@@ -56,6 +56,17 @@ function normalizePagination({ page, pageSize }: PaginationOptions = {}) {
 export async function fetchFacilityReports(filters: FacilityReportFilters, pagination: PaginationOptions = {}): Promise<FacilityReportResult> {
   const { page, pageSize, skip } = normalizePagination(pagination);
 
+  // If no facilityId, return empty result (pending approval)
+  if (!filters.facilityId) {
+    return {
+      items: [],
+      total: 0,
+      page,
+      pageSize,
+      hasNextPage: false,
+    };
+  }
+
   const where: Prisma.ReportWhereInput = {
     facilityId: filters.facilityId,
     submittedAt: { not: null },
@@ -152,7 +163,11 @@ export type CreateFacilityReportData = {
   dateOccurred?: string;
 };
 
-export async function createFacilityReport(facilityId: string, data: CreateFacilityReportData) {
+export async function createFacilityReport(facilityId: string | null, data: CreateFacilityReportData) {
+  if (!facilityId) {
+    throw new Error("Facility profile pending approval. Please contact admin.");
+  }
+
   // Verify the device is assigned to the facility
   const assignment = await prisma.deviceAssignment.findFirst({
     where: {
@@ -176,16 +191,22 @@ export async function createFacilityReport(facilityId: string, data: CreateFacil
     throw new Error("Device not found");
   }
 
+  // Generate unique tracking ID
+  const trackingId = `REP-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
   // Create the report
   return prisma.report.create({
     data: {
+      trackingId,
       deviceId: data.deviceId,
       facilityId,
       manufacturerId: device.manufacturerId,
       reportType: data.reportType,
-      severity: data.severity,
       summary: data.summary,
-      description: data.description,
+      details: {
+        description: data.description,
+        severity: data.severity,
+      },
       occurredAt: data.dateOccurred ? new Date(data.dateOccurred) : null,
       submittedAt: new Date(),
       status: "SUBMITTED",

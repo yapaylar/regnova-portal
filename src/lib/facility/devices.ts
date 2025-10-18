@@ -69,6 +69,11 @@ export type FacilityDeviceListItem = {
 export async function fetchFacilityDeviceList(filters: FacilityDeviceFilters, pagination: PaginationOptions = {}) {
   const { page, pageSize, skip } = normalizePagination(pagination);
 
+  // If no facilityId, return empty result (pending approval)
+  if (!filters.facilityId) {
+    return buildPaginationResult([], 0, page, pageSize);
+  }
+
   const where: Prisma.DeviceAssignmentWhereInput = {
     facilityId: filters.facilityId,
   };
