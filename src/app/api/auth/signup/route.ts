@@ -84,31 +84,45 @@ export async function POST(request: Request) {
       });
 
       if (profileResolution.facilityConnectId || profileResolution.createFacility) {
-        await tx.facilityProfile.create({
+        // Create facility if needed
+        const facility = profileResolution.facilityConnectId
+          ? await tx.facility.findUnique({ where: { id: profileResolution.facilityConnectId }, select: { id: true } })
+          : await tx.facility.create({
+              data: {
+                name: profileResolution.organization,
+                slug: profileResolution.createFacility?.slug ?? crypto.randomUUID(),
+              },
+              select: { id: true },
+            });
+
+        // Create facility registration for admin approval
+        await tx.facilityRegistration.create({
           data: {
-            user: { connect: { id: user.id } },
-            facility: profileResolution.facilityConnectId
-              ? { connect: { id: profileResolution.facilityConnectId } }
-              : {
-                  create: {
-                    name: profileResolution.organization,
-                    slug: profileResolution.createFacility?.slug ?? crypto.randomUUID(),
-                  },
-                },
+            userId: user.id,
+            facilityId: facility?.id ?? null,
+            status: "PENDING",
+            metadata: parsed.metadata,
           },
         });
       } else if (profileResolution.manufacturerConnectId || profileResolution.createManufacturer) {
-        await tx.manufacturerProfile.create({
+        // Create manufacturer if needed
+        const manufacturer = profileResolution.manufacturerConnectId
+          ? await tx.manufacturer.findUnique({ where: { id: profileResolution.manufacturerConnectId }, select: { id: true } })
+          : await tx.manufacturer.create({
+              data: {
+                name: profileResolution.organization,
+                slug: profileResolution.createManufacturer?.slug ?? crypto.randomUUID(),
+              },
+              select: { id: true },
+            });
+
+        // Create manufacturer registration for admin approval
+        await tx.manufacturerRegistration.create({
           data: {
-            user: { connect: { id: user.id } },
-            manufacturer: profileResolution.manufacturerConnectId
-              ? { connect: { id: profileResolution.manufacturerConnectId } }
-              : {
-                  create: {
-                    name: profileResolution.organization,
-                    slug: profileResolution.createManufacturer?.slug ?? crypto.randomUUID(),
-                  },
-                },
+            userId: user.id,
+            manufacturerId: manufacturer?.id ?? null,
+            status: "PENDING",
+            metadata: parsed.metadata,
           },
         });
       }
