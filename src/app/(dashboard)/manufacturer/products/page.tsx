@@ -99,7 +99,7 @@ export default function ManufacturerProductsPage() {
   const summary = useMemo(() => {
     if (!data)
       return { total: 0, registered: 0, pending: 0, suspended: 0, retired: 0, expectedComplaints: 0, reports: 0 };
-    return data.items.reduce(
+    return data.data.reduce(
       (acc, item) => {
         acc.total += 1;
         const status = item.registrationStatus?.toLowerCase();
@@ -252,7 +252,7 @@ export default function ManufacturerProductsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.items.map((item) => {
+                    {data.data.map((item) => {
                       const classLabel = CLASS_LABELS[item.deviceClass] ?? item.deviceClass;
                       const status = STATUS_VARIANTS[item.registrationStatus] ?? {
                         label: item.registrationStatus,

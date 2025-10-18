@@ -11,11 +11,14 @@ type ManufacturerProductFilters = {
 };
 
 type ManufacturerProductResponse = {
-  items: ManufacturerProductListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasNextPage: boolean;
+  data: ManufacturerProductListItem[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    hasNextPage: boolean;
+    totalPages: number;
+  };
 };
 
 export function useManufacturerProducts(filters: ManufacturerProductFilters = {}) {

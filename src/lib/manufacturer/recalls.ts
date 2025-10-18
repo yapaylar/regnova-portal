@@ -60,7 +60,18 @@ export async function fetchManufacturerRecalls(
   pagination: PaginationOptions = {},
 ): Promise<ManufacturerRecallResult> {
   const { page, pageSize, skip } = normalizePagination(pagination);
+  
+  // TODO: Implement Recall model in schema
+  // Returning empty result for now
+  return {
+    items: [],
+    total: 0,
+    page,
+    pageSize,
+    hasNextPage: false,
+  };
 
+  /* Commented out until Recall model is added
   const where: Prisma.RecallWhereInput = {
     manufacturerId: filters.manufacturerId,
   };
@@ -170,5 +181,6 @@ export async function fetchManufacturerRecalls(
     pageSize,
     hasNextPage,
   };
+  */
 }
 
