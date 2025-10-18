@@ -97,7 +97,7 @@ export default function ManufacturerProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const summary = useMemo(() => {
-    if (!data)
+    if (!data || !data.data || !Array.isArray(data.data))
       return { total: 0, registered: 0, pending: 0, suspended: 0, retired: 0, expectedComplaints: 0, reports: 0 };
     return data.data.reduce(
       (acc, item) => {
@@ -236,7 +236,7 @@ export default function ManufacturerProductsPage() {
               <StateMessage state="loading" />
             ) : isError ? (
               <StateMessage state="error" />
-            ) : !data || data.data.length === 0 ? (
+            ) : !data || !data.data || !Array.isArray(data.data) || data.data.length === 0 ? (
               <StateMessage state="empty" />
             ) : (
               <ScrollArea className="max-h-[600px]">
