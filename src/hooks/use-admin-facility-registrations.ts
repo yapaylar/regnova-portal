@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/context/auth-context";
 import { adminKeys } from "@/lib/query-keys";
@@ -49,7 +49,7 @@ export function useAdminFacilityRegistrations(filters: FacilityRegistrationFilte
       if (typeof filters.page === "number") params.set("page", String(filters.page));
       if (typeof filters.pageSize === "number") params.set("pageSize", String(filters.pageSize));
 
-      const response = await fetchWithAuth(`/api/admin/facilities?${params.toString()}`);
+      const response = await fetchWithAuth(`/api/admin/registrations/facilities?${params.toString()}`);
       if (!response.ok) {
         throw new Error("Failed to load facility registrations");
       }
@@ -84,5 +84,53 @@ export function useFacilityOptions(search?: string) {
       return response.json();
     },
     staleTime: 1000 * 30,
+  });
+}
+
+export function useApproveFacilityRegistration() {
+  const { fetchWithAuth } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ registrationId, notes }: { registrationId: string; notes?: string }) => {
+      const response = await fetchWithAuth(`/api/admin/registrations/facilities/${registrationId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to approve registration");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.facilityRegistrations() });
+    },
+  });
+}
+
+export function useRejectFacilityRegistration() {
+  const { fetchWithAuth } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ registrationId, notes }: { registrationId: string; notes?: string }) => {
+      const response = await fetchWithAuth(`/api/admin/registrations/facilities/${registrationId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reject registration");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.facilityRegistrations() });
+    },
   });
 }
