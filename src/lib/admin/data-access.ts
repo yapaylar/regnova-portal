@@ -901,15 +901,11 @@ export async function approveManufacturerRegistration(registrationId: string, ad
     });
 
     if (registration.manufacturerId) {
-      await tx.user.update({
-        where: { id: registration.userId },
+      await tx.manufacturerProfile.create({
         data: {
-          manufacturerProfile: {
-            create: {
-              manufacturerId: registration.manufacturerId,
-              jobTitle: (registration.metadata as any)?.jobTitle ?? null,
-            },
-          },
+          userId: registration.userId,
+          manufacturerId: registration.manufacturerId,
+          jobTitle: (registration.metadata as any)?.jobTitle ?? null,
         },
       });
     }
@@ -1046,16 +1042,12 @@ export async function approveFacilityRegistration(registrationId: string, adminU
     });
 
     if (registration.facilityId) {
-      await tx.user.update({
-        where: { id: registration.userId },
+      await tx.facilityProfile.create({
         data: {
-          facilityProfile: {
-            create: {
-              facilityId: registration.facilityId,
-              department: (registration.metadata as any)?.department ?? null,
-              jobTitle: (registration.metadata as any)?.jobTitle ?? null,
-            },
-          },
+          userId: registration.userId,
+          facilityId: registration.facilityId,
+          department: (registration.metadata as any)?.department ?? null,
+          title: (registration.metadata as any)?.title ?? (registration.metadata as any)?.jobTitle ?? null,
         },
       });
     }
