@@ -1,4 +1,3 @@
-import { DeviceAssignmentStatus, RecallActionType, RecallStatus, ReportStatus, ReportType } from "@prisma/client";
 import { z } from "zod";
 
 const paginationSchema = z.object({
@@ -9,7 +8,7 @@ const paginationSchema = z.object({
 export const facilityDeviceQuerySchema = paginationSchema
   .extend({
     search: z.string().optional(),
-    status: z.nativeEnum(DeviceAssignmentStatus).optional(),
+    status: z.enum(["ACTIVE", "INACTIVE", "MAINTENANCE"]).optional(),
   })
   .strict();
 
@@ -18,8 +17,8 @@ export type FacilityDeviceQuery = z.infer<typeof facilityDeviceQuerySchema>;
 export const facilityReportQuerySchema = paginationSchema
   .extend({
     search: z.string().optional(),
-    status: z.nativeEnum(ReportStatus).optional(),
-    reportType: z.nativeEnum(ReportType).optional(),
+    status: z.enum(["DRAFT", "SUBMITTED", "IN_REVIEW", "ACTION_REQUIRED", "RESOLVED", "CLOSED"]).optional(),
+    reportType: z.enum(["COMPLAINT", "ADVERSE_EVENT"]).optional(),
   })
   .strict();
 
@@ -28,8 +27,8 @@ export type FacilityReportQuery = z.infer<typeof facilityReportQuerySchema>;
 export const facilityRecallQuerySchema = paginationSchema
   .extend({
     search: z.string().optional(),
-    status: z.nativeEnum(RecallStatus).optional(),
-    actionType: z.nativeEnum(RecallActionType).optional(),
+    status: z.enum(["DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"]).optional(),
+    actionType: z.enum(["RECALL", "SAFETY_ALERT", "FIELD_CORRECTION", "MARKET_WITHDRAWAL"]).optional(),
   })
   .strict();
 
