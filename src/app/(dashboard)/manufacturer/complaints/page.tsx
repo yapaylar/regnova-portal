@@ -22,6 +22,13 @@ const STATUS_LABELS: Record<string, string> = {
   CLOSED: "Closed",
 };
 
+const SEVERITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  LOW: "secondary",
+  MEDIUM: "outline",
+  HIGH: "default",
+  CRITICAL: "destructive",
+};
+
 export default function ManufacturerComplaintsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string | undefined>(undefined);
