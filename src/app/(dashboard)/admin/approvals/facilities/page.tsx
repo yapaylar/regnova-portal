@@ -56,7 +56,7 @@ export default function FacilityApprovalsPage() {
     if (!selectedId) return;
 
     try {
-      const response = await fetch(`/api/admin/facilities/${selectedId}/approve`, {
+      const response = await fetch(`/api/admin/registrations/facilities/${selectedId}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ facilityId: selectedFacilityId }),
@@ -79,7 +79,7 @@ export default function FacilityApprovalsPage() {
     if (!selectedId) return;
 
     try {
-      const response = await fetch(`/api/admin/facilities/${selectedId}/reject`, {
+      const response = await fetch(`/api/admin/registrations/facilities/${selectedId}/reject`, {
         method: "POST",
       });
 

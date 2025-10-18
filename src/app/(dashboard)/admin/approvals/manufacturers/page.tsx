@@ -56,7 +56,7 @@ export default function ManufacturerApprovalsPage() {
     if (!selectedId) return;
 
     try {
-      const response = await fetch(`/api/admin/manufacturers/${selectedId}/approve`, {
+      const response = await fetch(`/api/admin/registrations/manufacturers/${selectedId}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ manufacturerId: selectedManufacturerId }),
@@ -66,7 +66,7 @@ export default function ManufacturerApprovalsPage() {
         throw new Error("Failed to approve registration");
       }
 
-              toast({ title: "Registration approved" });
+      toast({ title: "Registration approved" });
       await refetch();
       handleCloseAction();
     } catch (error) {
@@ -79,7 +79,7 @@ export default function ManufacturerApprovalsPage() {
     if (!selectedId) return;
 
     try {
-      const response = await fetch(`/api/admin/manufacturers/${selectedId}/reject`, {
+      const response = await fetch(`/api/admin/registrations/manufacturers/${selectedId}/reject`, {
         method: "POST",
       });
 
