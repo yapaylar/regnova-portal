@@ -22,7 +22,10 @@ export async function requireManufacturerUser() {
   if (user.profileType !== "manufacturer") {
     throw new HttpError({ code: "FORBIDDEN", message: "Manufacturer access required", status: 403 });
   }
-  return user;
+  if (!user.manufacturerId) {
+    throw new HttpError({ code: "FORBIDDEN", message: "Manufacturer profile not configured", status: 403 });
+  }
+  return { ...user, manufacturerId: user.manufacturerId };
 }
 
 export async function requireFacilityUser() {
@@ -30,6 +33,9 @@ export async function requireFacilityUser() {
   if (user.profileType !== "facility") {
     throw new HttpError({ code: "FORBIDDEN", message: "Facility access required", status: 403 });
   }
-  return user;
+  if (!user.facilityId) {
+    throw new HttpError({ code: "FORBIDDEN", message: "Facility profile not configured", status: 403 });
+  }
+  return { ...user, facilityId: user.facilityId };
 }
 
