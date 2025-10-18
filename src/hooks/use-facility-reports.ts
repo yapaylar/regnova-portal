@@ -46,7 +46,7 @@ export function useFacilityReports(filters: FacilityReportFilters = {}) {
   const { fetchWithAuth } = useAuth();
 
   return useQuery<FacilityReportListResponse>({
-    queryKey: [facilityKeys.complaints(), filters],
+    queryKey: [facilityKeys.reports(filters)],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.search) params.set("search", filters.search);
@@ -95,7 +95,7 @@ export function useCreateFacilityReport() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [facilityKeys.complaints()] });
+      queryClient.invalidateQueries({ queryKey: facilityKeys.reports() });
     },
   });
 }
