@@ -21,12 +21,16 @@ model User {
   passwordCredential  PasswordCredential?
   refreshTokens       RefreshToken[]
   auditLogs           AuditLog[]
-  facilityProfile     FacilityProfile?
-  manufacturerProfile ManufacturerProfile?
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
-  submittedReports    Report[]             @relation("ReportSubmitter")
-  verificationTokens  VerificationToken[]
+  facilityProfile            FacilityProfile?
+  manufacturerProfile        ManufacturerProfile?
+  manufacturerRegistration   ManufacturerRegistration?
+  facilityRegistration       FacilityRegistration?
+  reviewedManufacturerRegs   ManufacturerRegistration[] @relation("ManufacturerRegistrationReviewer")
+  reviewedFacilityRegs       FacilityRegistration[]     @relation("FacilityRegistrationReviewer")
+  createdAt                  DateTime                   @default(now()) @map("created_at")
+  updatedAt                  DateTime                   @updatedAt @map("updated_at")
+  submittedReports           Report[]                   @relation("ReportSubmitter")
+  verificationTokens         VerificationToken[]
 
   @@index([emailNormalized])
 }
@@ -75,10 +79,11 @@ model Facility {
   isActive     Boolean            @default(true) @map("is_active")
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
-  profiles     FacilityProfile[]
-  devices      DeviceAssignment[]
-  reports      Report[]
-  pmsVisits    PmsVisit[]
+  profiles      FacilityProfile[]
+  devices       DeviceAssignment[]
+  reports       Report[]
+  pmsVisits     PmsVisit[]
+  registrations FacilityRegistration[]
 
   @@index([slug])
 }
@@ -113,6 +118,7 @@ model Manufacturer {
   profiles           ManufacturerProfile[]
   devices            Device[]
   reports            Report[]
+  registrations      ManufacturerRegistration[]
 
   @@index([slug])
 }
@@ -303,10 +309,66 @@ enum AuditEvent {
   REPORT_CREATED
   REPORT_UPDATED
   REPORT_STATUS_CHANGED
+  MANUFACTURER_REGISTRATION_APPROVED
+  MANUFACTURER_REGISTRATION_REJECTED
+  FACILITY_REGISTRATION_APPROVED
+  FACILITY_REGISTRATION_REJECTED
 }
 
 enum VerificationType {
   EMAIL_VERIFY
   PASSWORD_RESET
   INVITE
+}
+
+enum ManufacturerRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FacilityRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ManufacturerRegistration {
+  id             String                         @id @default(cuid())
+  userId         String                         @unique
+  manufacturerId String?
+  status         ManufacturerRegistrationStatus @default(PENDING)
+  metadata       Json?
+  submittedAt    DateTime                       @default(now())
+  reviewedAt     DateTime?
+  reviewedById   String?
+  reviewNotes    String?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  reviewedBy   User?         @relation("ManufacturerRegistrationReviewer", fields: [reviewedById], references: [id])
+
+  @@index([status])
+  @@index([submittedAt])
+  @@map("manufacturer_registrations")
+}
+
+model FacilityRegistration {
+  id           String                      @id @default(cuid())
+  userId       String                      @unique
+  facilityId   String?
+  status       FacilityRegistrationStatus  @default(PENDING)
+  metadata     Json?
+  submittedAt  DateTime                    @default(now())
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewNotes  String?
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facility   Facility? @relation(fields: [facilityId], references: [id])
+  reviewedBy User?     @relation("FacilityRegistrationReviewer", fields: [reviewedById], references: [id])
+
+  @@index([status])
+  @@index([submittedAt])
+  @@map("facility_registrations")
 }
