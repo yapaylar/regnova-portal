@@ -855,7 +855,7 @@ export async function fetchAdminManufacturerRegistrations(filters: { status?: st
       include: {
         user: { select: { id: true, email: true, firstName: true, lastName: true, organization: true } },
         manufacturer: { select: { id: true, name: true, slug: true } },
-        reviewer: { select: { id: true, email: true } },
+        reviewedBy: { select: { id: true, email: true } },
       },
     }),
     prisma.manufacturerRegistration.count({ where }),
@@ -874,8 +874,8 @@ export async function fetchAdminManufacturerRegistrations(filters: { status?: st
       email: reg.user.email,
       name: [reg.user.firstName, reg.user.lastName].filter(Boolean).join(" ") || null,
     },
-    reviewer: reg.reviewer
-      ? { id: reg.reviewer.id, email: reg.reviewer.email }
+    reviewer: reg.reviewedBy
+      ? { id: reg.reviewedBy.id, email: reg.reviewedBy.email }
       : null,
     manufacturer: reg.manufacturer
       ? { id: reg.manufacturer.id, name: reg.manufacturer.name, slug: reg.manufacturer.slug }
@@ -1000,7 +1000,7 @@ export async function fetchAdminFacilityRegistrations(filters: { status?: string
       include: {
         user: { select: { id: true, email: true, firstName: true, lastName: true, organization: true } },
         facility: { select: { id: true, name: true, slug: true } },
-        reviewer: { select: { id: true, email: true } },
+        reviewedBy: { select: { id: true, email: true } },
       },
     }),
     prisma.facilityRegistration.count({ where }),
@@ -1019,8 +1019,8 @@ export async function fetchAdminFacilityRegistrations(filters: { status?: string
       email: reg.user.email,
       name: [reg.user.firstName, reg.user.lastName].filter(Boolean).join(" ") || null,
     },
-    reviewer: reg.reviewer
-      ? { id: reg.reviewer.id, email: reg.reviewer.email }
+    reviewer: reg.reviewedBy
+      ? { id: reg.reviewedBy.id, email: reg.reviewedBy.email }
       : null,
     facility: reg.facility
       ? { id: reg.facility.id, name: reg.facility.name, slug: reg.facility.slug }
