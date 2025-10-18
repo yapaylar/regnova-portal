@@ -236,7 +236,7 @@ export default function ManufacturerProductsPage() {
               <StateMessage state="loading" />
             ) : isError ? (
               <StateMessage state="error" />
-            ) : !data || data.items.length === 0 ? (
+            ) : !data || data.data.length === 0 ? (
               <StateMessage state="empty" />
             ) : (
               <ScrollArea className="max-h-[600px]">
