@@ -1,4 +1,3 @@
-import { DeviceClass, DeviceRegistrationStatus, RecallActionType, RecallStatus, ReportStatus, ReportType } from "@prisma/client";
 import { z } from "zod";
 
 const paginationSchema = z.object({
@@ -27,8 +26,8 @@ export const manufacturerProductCreateSchema = z
       .max(120)
       .optional()
       .transform((value) => (value && value.length > 0 ? value : undefined)),
-    deviceClass: z.nativeEnum(DeviceClass),
-    registrationStatus: z.nativeEnum(DeviceRegistrationStatus),
+    deviceClass: z.enum(["I", "II", "III"]),
+    registrationStatus: z.enum(["REGISTERED", "PENDING", "SUSPENDED", "RETIRED"]),
   })
   .strict();
 
@@ -38,8 +37,8 @@ export type ManufacturerProductCreateInput = z.infer<typeof manufacturerProductC
 export const manufacturerReportQuerySchema = paginationSchema
   .extend({
     search: z.string().trim().max(120).optional(),
-    status: z.nativeEnum(ReportStatus).optional(),
-    reportType: z.nativeEnum(ReportType).optional(),
+    status: z.enum(["DRAFT", "SUBMITTED", "IN_REVIEW", "ACTION_REQUIRED", "RESOLVED", "CLOSED"]).optional(),
+    reportType: z.enum(["COMPLAINT", "ADVERSE_EVENT"]).optional(),
   })
   .strict();
 
@@ -48,8 +47,8 @@ export type ManufacturerReportQuery = z.infer<typeof manufacturerReportQuerySche
 export const manufacturerRecallQuerySchema = paginationSchema
   .extend({
     search: z.string().trim().max(120).optional(),
-    status: z.nativeEnum(RecallStatus).optional(),
-    actionType: z.nativeEnum(RecallActionType).optional(),
+    status: z.enum(["DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"]).optional(),
+    actionType: z.enum(["RECALL", "SAFETY_ALERT", "FIELD_CORRECTION", "MARKET_WITHDRAWAL"]).optional(),
     region: z.string().trim().max(80).optional(),
   })
   .strict();
