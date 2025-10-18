@@ -363,7 +363,6 @@ model ManufacturerRegistration {
 
   @@index([status])
   @@index([submittedAt])
-  @@map("manufacturer_registrations")
 }
 
 model FacilityRegistration {
@@ -383,5 +382,4 @@ model FacilityRegistration {
 
   @@index([status])
   @@index([submittedAt])
-  @@map("facility_registrations")
 }
