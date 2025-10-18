@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Filter, Loader2, RefreshCcw, Search } from "lucide-react";
+import { Filter, Loader2, RefreshCcw, Search, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFacilityDevices } from "@/hooks/use-facility-devices";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useFacilityDevices, useAvailableDevices, useAssignDevice } from "@/hooks/use-facility-devices";
 import { formatDate } from "@/lib/formatters";
+import { useToast } from "@/components/ui/use-toast";
 
 const STATUS_TABS: Array<{ value: string; label: string }> = [
   { value: "ALL", label: "All" },
@@ -23,6 +25,8 @@ const STATUS_TABS: Array<{ value: string; label: string }> = [
 export default function FacilityDevicesPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("ALL");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const { data, isLoading, isError, refetch, isRefetching } = useFacilityDevices({
     search: search.length ? search : undefined,
@@ -74,6 +78,20 @@ export default function FacilityDevicesPage() {
             <Button variant="outline" onClick={() => refetch()} disabled={isRefetching}>
               {isRefetching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <RefreshCcw className="mr-2 size-4" />} Refresh
             </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 size-4" /> Add Device
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add Device to Facility</DialogTitle>
+                  <DialogDescription>Select a device from the available devices to assign to your facility.</DialogDescription>
+                </DialogHeader>
+                <AddDeviceDialog onClose={() => setIsAddDialogOpen(false)} onSuccess={() => refetch()} />
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
@@ -175,6 +193,83 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg border bg-card p-4 shadow-sm">
       <div className="text-sm text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-semibold text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function AddDeviceDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [deviceSearch, setDeviceSearch] = useState("");
+  const { toast } = useToast();
+  const { data: availableData, isLoading } = useAvailableDevices(deviceSearch);
+  const assignDevice = useAssignDevice();
+
+  const handleAssign = async (deviceId: string) => {
+    try {
+      await assignDevice.mutateAsync({ deviceId });
+      toast.success("Device has been successfully assigned to your facility.");
+      onSuccess();
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to assign device");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="pl-9"
+          placeholder="Search devices by name, model, or manufacturer..."
+          value={deviceSearch}
+          onChange={(e) => setDeviceSearch(e.target.value)}
+        />
+      </div>
+
+      <ScrollArea className="h-[400px]">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !availableData?.devices || availableData.devices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-sm text-muted-foreground">No available devices found.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {availableData.devices.map((device) => (
+              <div
+                key={device.id}
+                className="flex items-start justify-between rounded-lg border p-4 hover:bg-muted/50"
+              >
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{device.name}</span>
+                    {device.isAssigned && (
+                      <Badge variant="secondary" className="text-xs">
+                        Already Assigned
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <div>Manufacturer: {device.manufacturer.name}</div>
+                    {device.modelNumber && <div>Model: {device.modelNumber}</div>}
+                    {device.udi && <div>UDI: {device.udi}</div>}
+                    <div>Class: {device.deviceClass}</div>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => handleAssign(device.id)}
+                  disabled={device.isAssigned || assignDevice.isPending}
+                >
+                  {assignDevice.isPending ? <Loader2 className="size-4 animate-spin" /> : "Add"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 }

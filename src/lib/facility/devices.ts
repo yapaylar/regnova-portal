@@ -1,4 +1,4 @@
-import { Prisma, DeviceAssignmentStatus, RecallStatus } from "@prisma/client";
+import { Prisma, DeviceAssignmentStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
@@ -140,16 +140,8 @@ export async function fetchFacilityDeviceList(filters: FacilityDeviceFilters, pa
           _count: true,
         })
       : Promise.resolve([]),
-    deviceIds.length > 0
-      ? prisma.recall.groupBy({
-          by: ["deviceId"],
-          where: {
-            deviceId: { in: deviceIds },
-            status: { in: [RecallStatus.ACTIVE, RecallStatus.DRAFT] },
-          },
-          _count: true,
-        })
-      : Promise.resolve([]),
+    // TODO: Add recall grouping when Recall model is available
+    Promise.resolve([]),
   ]);
 
   const reportCountMap = new Map<string, number>();
@@ -159,12 +151,8 @@ export async function fetchFacilityDeviceList(filters: FacilityDeviceFilters, pa
     }
   }
 
+  // Recall count will be implemented when Recall model is added
   const recallCountMap = new Map<string, number>();
-  for (const group of recallGroups) {
-    if (group.deviceId) {
-      recallCountMap.set(group.deviceId, group._count);
-    }
-  }
 
   const items: FacilityDeviceListItem[] = assignments.map((assignment) => ({
     assignmentId: assignment.id,
@@ -189,5 +177,126 @@ export async function fetchFacilityDeviceList(filters: FacilityDeviceFilters, pa
   }));
 
   return buildPaginationResult(items, total, page, pageSize);
+}
+
+// Get all available devices (not yet assigned to facility)
+export type AvailableDeviceListItem = {
+  id: string;
+  name: string;
+  modelNumber: string | null;
+  udi: string | null;
+  deviceClass: string;
+  registrationStatus: string;
+  manufacturer: {
+    id: string;
+    name: string;
+  };
+  isAssigned: boolean;
+};
+
+export async function fetchAvailableDevices(facilityId: string, search?: string) {
+  const where: Prisma.DeviceWhereInput = {
+    registrationStatus: "REGISTERED", // Only show registered devices
+  };
+
+  if (search) {
+    const searchTerm = search.trim();
+    if (searchTerm.length > 0) {
+      where.OR = [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { modelNumber: { contains: searchTerm, mode: "insensitive" } },
+        { udi: { contains: searchTerm, mode: "insensitive" } },
+        { manufacturer: { name: { contains: searchTerm, mode: "insensitive" } } },
+      ];
+    }
+  }
+
+  const [devices, assignments] = await Promise.all([
+    prisma.device.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        modelNumber: true,
+        udi: true,
+        deviceClass: true,
+        registrationStatus: true,
+        manufacturer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+      take: 100, // Limit for performance
+    }),
+    prisma.deviceAssignment.findMany({
+      where: { facilityId },
+      select: { deviceId: true },
+    }),
+  ]);
+
+  const assignedDeviceIds = new Set(assignments.map((a) => a.deviceId));
+
+  return devices.map((device) => ({
+    ...device,
+    manufacturer: device.manufacturer,
+    isAssigned: assignedDeviceIds.has(device.id),
+  }));
+}
+
+// Assign device to facility
+export async function assignDeviceToFacility(facilityId: string, deviceId: string, notes?: string) {
+  // Check if already assigned
+  const existing = await prisma.deviceAssignment.findUnique({
+    where: {
+      deviceId_facilityId: {
+        deviceId,
+        facilityId,
+      },
+    },
+  });
+
+  if (existing) {
+    throw new Error("Device already assigned to this facility");
+  }
+
+  return prisma.deviceAssignment.create({
+    data: {
+      deviceId,
+      facilityId,
+      status: "ACTIVE",
+      notes,
+    },
+    include: {
+      device: {
+        select: {
+          id: true,
+          name: true,
+          manufacturer: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+// Unassign device from facility
+export async function unassignDeviceFromFacility(assignmentId: string, facilityId: string) {
+  const assignment = await prisma.deviceAssignment.findUnique({
+    where: { id: assignmentId },
+  });
+
+  if (!assignment || assignment.facilityId !== facilityId) {
+    throw new Error("Assignment not found or access denied");
+  }
+
+  return prisma.deviceAssignment.delete({
+    where: { id: assignmentId },
+  });
 }
 
