@@ -829,23 +829,58 @@ export type ManufacturerRegistrationListItem = {
   } | null;
 };
 
-export async function fetchAdminManufacturerRegistrations(filters: { status?: string } = {}, pagination: PaginationOptions = {}) {
+export async function fetchAdminManufacturerRegistrations(filters: { status?: string; search?: string } = {}, pagination: PaginationOptions = {}) {
   const { page, pageSize, skip } = normalizePagination(pagination);
-  const where: Prisma.ManufacturerRegistrationWhereInput = filters.status ? { status: filters.status as any } : {};
+  const where: Prisma.ManufacturerRegistrationWhereInput = {};
+  
+  if (filters.status) {
+    where.status = filters.status as any;
+  }
+  
+  if (filters.search) {
+    where.OR = [
+      { user: { email: { contains: filters.search, mode: "insensitive" } } },
+      { user: { firstName: { contains: filters.search, mode: "insensitive" } } },
+      { user: { lastName: { contains: filters.search, mode: "insensitive" } } },
+      { user: { organization: { contains: filters.search, mode: "insensitive" } } },
+    ];
+  }
 
-  const [items, total] = await Promise.all([
+  const [registrations, total] = await Promise.all([
     prisma.manufacturerRegistration.findMany({
       where,
       skip,
       take: pageSize,
       orderBy: { submittedAt: "desc" },
       include: {
-        user: { select: { id: true, email: true, firstName: true, lastName: true } },
+        user: { select: { id: true, email: true, firstName: true, lastName: true, organization: true } },
         manufacturer: { select: { id: true, name: true, slug: true } },
+        reviewer: { select: { id: true, email: true } },
       },
     }),
     prisma.manufacturerRegistration.count({ where }),
   ]);
+
+  // Map to expected format
+  const items = registrations.map((reg) => ({
+    id: reg.id,
+    status: reg.status,
+    metadata: reg.metadata,
+    submittedAt: reg.submittedAt.toISOString(),
+    reviewedAt: reg.reviewedAt?.toISOString() ?? null,
+    organization: reg.user.organization ?? "N/A",
+    user: {
+      id: reg.user.id,
+      email: reg.user.email,
+      name: [reg.user.firstName, reg.user.lastName].filter(Boolean).join(" ") || null,
+    },
+    reviewer: reg.reviewer
+      ? { id: reg.reviewer.id, email: reg.reviewer.email }
+      : null,
+    manufacturer: reg.manufacturer
+      ? { id: reg.manufacturer.id, name: reg.manufacturer.name, slug: reg.manufacturer.slug }
+      : null,
+  }));
 
   return buildPaginationResult(items, total, page, pageSize);
 }
@@ -939,23 +974,58 @@ export type FacilityRegistrationListItem = {
   } | null;
 };
 
-export async function fetchAdminFacilityRegistrations(filters: { status?: string } = {}, pagination: PaginationOptions = {}) {
+export async function fetchAdminFacilityRegistrations(filters: { status?: string; search?: string } = {}, pagination: PaginationOptions = {}) {
   const { page, pageSize, skip } = normalizePagination(pagination);
-  const where: Prisma.FacilityRegistrationWhereInput = filters.status ? { status: filters.status as any } : {};
+  const where: Prisma.FacilityRegistrationWhereInput = {};
+  
+  if (filters.status) {
+    where.status = filters.status as any;
+  }
+  
+  if (filters.search) {
+    where.OR = [
+      { user: { email: { contains: filters.search, mode: "insensitive" } } },
+      { user: { firstName: { contains: filters.search, mode: "insensitive" } } },
+      { user: { lastName: { contains: filters.search, mode: "insensitive" } } },
+      { user: { organization: { contains: filters.search, mode: "insensitive" } } },
+    ];
+  }
 
-  const [items, total] = await Promise.all([
+  const [registrations, total] = await Promise.all([
     prisma.facilityRegistration.findMany({
       where,
       skip,
       take: pageSize,
       orderBy: { submittedAt: "desc" },
       include: {
-        user: { select: { id: true, email: true, firstName: true, lastName: true } },
+        user: { select: { id: true, email: true, firstName: true, lastName: true, organization: true } },
         facility: { select: { id: true, name: true, slug: true } },
+        reviewer: { select: { id: true, email: true } },
       },
     }),
     prisma.facilityRegistration.count({ where }),
   ]);
+
+  // Map to expected format
+  const items = registrations.map((reg) => ({
+    id: reg.id,
+    status: reg.status,
+    metadata: reg.metadata,
+    submittedAt: reg.submittedAt.toISOString(),
+    reviewedAt: reg.reviewedAt?.toISOString() ?? null,
+    organization: reg.user.organization ?? "N/A",
+    user: {
+      id: reg.user.id,
+      email: reg.user.email,
+      name: [reg.user.firstName, reg.user.lastName].filter(Boolean).join(" ") || null,
+    },
+    reviewer: reg.reviewer
+      ? { id: reg.reviewer.id, email: reg.reviewer.email }
+      : null,
+    facility: reg.facility
+      ? { id: reg.facility.id, name: reg.facility.name, slug: reg.facility.slug }
+      : null,
+  }));
 
   return buildPaginationResult(items, total, page, pageSize);
 }

@@ -105,7 +105,7 @@ export default function FacilityComplaintsPage() {
             <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">Loading complaints…</div>
           ) : isError ? (
             <div className="flex h-48 items-center justify-center text-sm text-destructive">Failed to load complaints.</div>
-          ) : !data || data.data.length === 0 ? (
+          ) : !data || !data.data || !Array.isArray(data.data) || data.data.length === 0 ? (
             <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No complaints submitted yet.</div>
           ) : (
             <ScrollArea className="max-h-[560px]">
