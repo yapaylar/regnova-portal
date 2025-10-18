@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { refreshSchema } from "@/lib/auth/schemas";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "@/lib/auth/jwt";
 import { getPermissionsForRole } from "@/lib/auth/permissions";
-import { loadFingerprintFromCookies, persistFingerprintCookie, setAccessCookie, setRefreshCookie, ACCESS_COOKIE_MAX_AGE, REFRESH_COOKIE_MAX_AGE } from "@/lib/auth/session";
+import { persistFingerprintCookie, setAccessCookie, setRefreshCookie, ACCESS_COOKIE_MAX_AGE, REFRESH_COOKIE_MAX_AGE } from "@/lib/auth/session";
 import { HttpError, createErrorResponse, toHttpError } from "@/lib/http/errors";
 import { generateRefreshToken, getClientIp, getUserAgent } from "@/lib/auth/utils";
 import { checkRateLimit } from "@/lib/rate-limit/redis";

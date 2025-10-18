@@ -806,4 +806,225 @@ export async function fetchAdminUserList(filters: AdminUserFilters = {}, paginat
   return buildPaginationResult(items, total, page, pageSize);
 }
 
+// Manufacturer & Facility Registrations (Approval Flow)
 
+export type ManufacturerRegistrationListItem = {
+  id: string;
+  userId: string;
+  manufacturerId: string | null;
+  status: string;
+  submittedAt: Date;
+  reviewedAt: Date | null;
+  reviewNotes: string | null;
+  user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
+  manufacturer: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+};
+
+export async function fetchAdminManufacturerRegistrations(filters: { status?: string } = {}, pagination: PaginationOptions = {}) {
+  const { page, pageSize, skip } = normalizePagination(pagination);
+  const where: Prisma.ManufacturerRegistrationWhereInput = filters.status ? { status: filters.status as any } : {};
+
+  const [items, total] = await Promise.all([
+    prisma.manufacturerRegistration.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: { submittedAt: "desc" },
+      include: {
+        user: { select: { id: true, email: true, firstName: true, lastName: true } },
+        manufacturer: { select: { id: true, name: true, slug: true } },
+      },
+    }),
+    prisma.manufacturerRegistration.count({ where }),
+  ]);
+
+  return buildPaginationResult(items, total, page, pageSize);
+}
+
+export async function approveManufacturerRegistration(registrationId: string, adminUserId: string, notes?: string) {
+  const registration = await prisma.manufacturerRegistration.findUnique({
+    where: { id: registrationId },
+    include: { user: true },
+  });
+
+  if (!registration) throw new Error("Registration not found");
+  if (registration.status !== "PENDING") throw new Error("Registration already processed");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.manufacturerRegistration.update({
+      where: { id: registrationId },
+      data: { status: "APPROVED", reviewedAt: new Date(), reviewedById: adminUserId, reviewNotes: notes },
+    });
+
+    if (registration.manufacturerId) {
+      await tx.user.update({
+        where: { id: registration.userId },
+        data: {
+          manufacturerProfile: {
+            create: {
+              manufacturerId: registration.manufacturerId,
+              jobTitle: (registration.metadata as any)?.jobTitle ?? null,
+            },
+          },
+        },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        event: "MANUFACTURER_REGISTRATION_APPROVED" as AuditEvent,
+        userId: adminUserId,
+        metadata: { registrationId, targetUserId: registration.userId },
+      },
+    });
+  });
+}
+
+export async function rejectManufacturerRegistration(registrationId: string, adminUserId: string, notes?: string) {
+  const registration = await prisma.manufacturerRegistration.findUnique({ where: { id: registrationId } });
+  if (!registration) throw new Error("Registration not found");
+  if (registration.status !== "PENDING") throw new Error("Registration already processed");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.manufacturerRegistration.update({
+      where: { id: registrationId },
+      data: { status: "REJECTED", reviewedAt: new Date(), reviewedById: adminUserId, reviewNotes: notes },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        event: "MANUFACTURER_REGISTRATION_REJECTED" as AuditEvent,
+        userId: adminUserId,
+        metadata: { registrationId, targetUserId: registration.userId },
+      },
+    });
+  });
+}
+
+export async function fetchManufacturerOptions() {
+  const manufacturers = await prisma.manufacturer.findMany({
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: "asc" },
+  });
+  return manufacturers.map((m) => ({ value: m.id, label: m.name }));
+}
+
+export type FacilityRegistrationListItem = {
+  id: string;
+  userId: string;
+  facilityId: string | null;
+  status: string;
+  submittedAt: Date;
+  reviewedAt: Date | null;
+  reviewNotes: string | null;
+  user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
+  facility: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+};
+
+export async function fetchAdminFacilityRegistrations(filters: { status?: string } = {}, pagination: PaginationOptions = {}) {
+  const { page, pageSize, skip } = normalizePagination(pagination);
+  const where: Prisma.FacilityRegistrationWhereInput = filters.status ? { status: filters.status as any } : {};
+
+  const [items, total] = await Promise.all([
+    prisma.facilityRegistration.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: { submittedAt: "desc" },
+      include: {
+        user: { select: { id: true, email: true, firstName: true, lastName: true } },
+        facility: { select: { id: true, name: true, slug: true } },
+      },
+    }),
+    prisma.facilityRegistration.count({ where }),
+  ]);
+
+  return buildPaginationResult(items, total, page, pageSize);
+}
+
+export async function approveFacilityRegistration(registrationId: string, adminUserId: string, notes?: string) {
+  const registration = await prisma.facilityRegistration.findUnique({
+    where: { id: registrationId },
+    include: { user: true },
+  });
+
+  if (!registration) throw new Error("Registration not found");
+  if (registration.status !== "PENDING") throw new Error("Registration already processed");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.facilityRegistration.update({
+      where: { id: registrationId },
+      data: { status: "APPROVED", reviewedAt: new Date(), reviewedById: adminUserId, reviewNotes: notes },
+    });
+
+    if (registration.facilityId) {
+      await tx.user.update({
+        where: { id: registration.userId },
+        data: {
+          facilityProfile: {
+            create: {
+              facilityId: registration.facilityId,
+              department: (registration.metadata as any)?.department ?? null,
+              jobTitle: (registration.metadata as any)?.jobTitle ?? null,
+            },
+          },
+        },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        event: "FACILITY_REGISTRATION_APPROVED" as AuditEvent,
+        userId: adminUserId,
+        metadata: { registrationId, targetUserId: registration.userId },
+      },
+    });
+  });
+}
+
+export async function rejectFacilityRegistration(registrationId: string, adminUserId: string, notes?: string) {
+  const registration = await prisma.facilityRegistration.findUnique({ where: { id: registrationId } });
+  if (!registration) throw new Error("Registration not found");
+  if (registration.status !== "PENDING") throw new Error("Registration already processed");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.facilityRegistration.update({
+      where: { id: registrationId },
+      data: { status: "REJECTED", reviewedAt: new Date(), reviewedById: adminUserId, reviewNotes: notes },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        event: "FACILITY_REGISTRATION_REJECTED" as AuditEvent,
+        userId: adminUserId,
+        metadata: { registrationId, targetUserId: registration.userId },
+      },
+    });
+  });
+}
+
+export async function fetchFacilityOptions() {
+  const facilities = await prisma.facility.findMany({
+    select: { id: true, name: true, slug: true },
+    orderBy: { name: "asc" },
+  });
+  return facilities.map((f) => ({ value: f.id, label: f.name }));
+}

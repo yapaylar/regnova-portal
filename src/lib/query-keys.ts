@@ -31,5 +31,26 @@ export const adminKeys = {
   pms: () => ["admin", "pms"] as const,
   auditLog: () => ["admin", "audit-log"] as const,
   metadata: () => ["admin", "metadata"] as const,
+  manufacturerRegistrations: () => ["admin", "manufacturer-registrations"] as const,
+  facilityRegistrations: () => ["admin", "facility-registrations"] as const,
+  manufacturerOptions: () => ["admin", "manufacturer-options"] as const,
+  facilityOptions: () => ["admin", "facility-options"] as const,
+};
+
+export const manufacturerKeys = {
+  all: () => ["manufacturer"] as const,
+  products: (filters?: Record<string, unknown>) => [...manufacturerKeys.all(), "products", filters] as const,
+  reports: (filters?: Record<string, unknown>) => [...manufacturerKeys.all(), "reports", filters] as const,
+  recalls: (filters?: Record<string, unknown>) => [...manufacturerKeys.all(), "recalls", filters] as const,
+  documents: (folderId?: string) => [...manufacturerKeys.all(), "documents", folderId] as const,
+  analytics: () => [...manufacturerKeys.all(), "analytics"] as const,
+};
+
+export const facilityKeys = {
+  all: () => ["facility"] as const,
+  devices: (filters?: Record<string, unknown>) => [...facilityKeys.all(), "devices", filters] as const,
+  reports: (filters?: Record<string, unknown>) => [...facilityKeys.all(), "reports", filters] as const,
+  recalls: (filters?: Record<string, unknown>) => [...facilityKeys.all(), "recalls", filters] as const,
+  resources: (filters?: Record<string, unknown>) => [...facilityKeys.all(), "resources", filters] as const,
 };
 

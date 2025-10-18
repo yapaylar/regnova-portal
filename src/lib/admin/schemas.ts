@@ -96,10 +96,23 @@ export const adminUsersQuerySchema = paginationSchema
   })
   .strict();
 
+export const adminManufacturerRegistrationQuerySchema = paginationSchema
+  .extend({
+    status: z.string().optional(),
+  })
+  .strict();
+
+export const adminFacilityRegistrationQuerySchema = paginationSchema
+  .extend({
+    status: z.string().optional(),
+  })
+  .strict();
+
 export type AdminReportQuery = z.infer<typeof adminReportQuerySchema>;
 export type AdminAuditLogQuery = z.infer<typeof adminAuditLogQuerySchema>;
 export type AdminDevicesQuery = z.infer<typeof adminDevicesQuerySchema>;
 export type AdminPmsQuery = z.infer<typeof adminPmsQuerySchema>;
 export type AdminUsersQuery = z.infer<typeof adminUsersQuerySchema>;
-
+export type AdminManufacturerRegistrationQuery = z.infer<typeof adminManufacturerRegistrationQuerySchema>;
+export type AdminFacilityRegistrationQuery = z.infer<typeof adminFacilityRegistrationQuerySchema>;
 

@@ -19,4 +19,6 @@ export function formatDateTime(date: string | Date) {
   return `${formatDate(date)} ${formatTime(date)}`;
 }
 
-
+export function separator(value: number): string {
+  return value.toLocaleString("en-US");
+}

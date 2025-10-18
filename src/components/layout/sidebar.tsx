@@ -1,6 +1,23 @@
 "use client";
 
-import { Book, Bell, ClipboardList, Cpu, FileText, FileWarning, Home, Search, Stethoscope, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  Book,
+  Bell,
+  ChartBar,
+  ClipboardList,
+  Cpu,
+  FileText,
+  FileWarning,
+  Folder,
+  Home,
+  MessageSquare,
+  Package,
+  Search,
+  ShieldCheck,
+  Stethoscope,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,10 +36,22 @@ const ICONS = {
   cpu: Cpu,
   stethoscope: Stethoscope,
   "clipboard-list": ClipboardList,
+  "shield-check": ShieldCheck,
+  package: Package,
+  "message-square": MessageSquare,
+  "alert-triangle": AlertTriangle,
+  folder: Folder,
+  "chart-bar": ChartBar,
 };
 
 type SidebarProps = {
-  navigation: { main: NavItem[]; admin: NavItem[] };
+  navigation: {
+    main: NavItem[];
+    admin: NavItem[];
+    approvals?: NavItem[];
+    manufacturer?: NavItem[];
+    facility?: NavItem[];
+  };
   onNavigate?: () => void;
 };
 
@@ -69,13 +98,30 @@ export function Sidebar({ navigation, onNavigate }: SidebarProps) {
     <div className="flex h-full flex-col text-[var(--sidebar-foreground)]">
       <div className="flex-1 overflow-y-auto px-2 pb-24 pt-6">
         <nav className="flex flex-col gap-6">
-          <div>
-            <p className="px-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--sidebar-foreground)]/70">Main</p>
-            <div className="mt-2 space-y-1">{renderNavGroup(navigation.main)}</div>
-          </div>
+          {navigation.main.length > 0 ? (
+            <div>
+              <p className="px-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--sidebar-foreground)]/70">Main</p>
+              <div className="mt-2 space-y-1">{renderNavGroup(navigation.main)}</div>
+            </div>
+          ) : null}
           {navigation.admin.length > 0 ? (
             <div>
               {renderNavGroup(navigation.admin, "Admin")}
+            </div>
+          ) : null}
+          {navigation.approvals && navigation.approvals.length > 0 ? (
+            <div>
+              {renderNavGroup(navigation.approvals, "Approvals")}
+            </div>
+          ) : null}
+          {navigation.manufacturer && navigation.manufacturer.length > 0 ? (
+            <div>
+              {renderNavGroup(navigation.manufacturer, "Manufacturer")}
+            </div>
+          ) : null}
+          {navigation.facility && navigation.facility.length > 0 ? (
+            <div>
+              {renderNavGroup(navigation.facility, "Facility")}
             </div>
           ) : null}
         </nav>

@@ -14,7 +14,7 @@ type RoleContextValue = {
   setRole: (role: Role) => void;
 };
 
-const RoleContext = createContext<RoleContextValue | null>(null);
+export const RoleContext = createContext<RoleContextValue | null>(null);
 
 type RoleProviderProps = {
   children: React.ReactNode;
@@ -52,3 +52,18 @@ export function useRole() {
   return context;
 }
 
+export function deriveRoleContextValue(user: any, updateUser: (data: any) => void): RoleContextValue {
+  const role = user?.profileType ?? "admin";
+  const name = user && (user.firstName || user.lastName)
+    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+    : user?.email ?? "Regnova User";
+  return {
+    role,
+    name,
+    email: user?.email ?? "launch@regnova.com",
+    organization: user?.organization ?? "Regnova",
+    setRole: (nextRole: Role) => {
+      updateUser({ profileType: nextRole });
+    },
+  };
+}

@@ -17,4 +17,19 @@ export async function requireAdminUser() {
   return user;
 }
 
+export async function requireManufacturerUser() {
+  const user = await requireAuthenticatedUser();
+  if (user.profileType !== "manufacturer") {
+    throw new HttpError({ code: "FORBIDDEN", message: "Manufacturer access required", status: 403 });
+  }
+  return user;
+}
+
+export async function requireFacilityUser() {
+  const user = await requireAuthenticatedUser();
+  if (user.profileType !== "facility") {
+    throw new HttpError({ code: "FORBIDDEN", message: "Facility access required", status: 403 });
+  }
+  return user;
+}
 
