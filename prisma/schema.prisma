@@ -348,14 +348,14 @@ enum RecallActionType {
 
 model ManufacturerRegistration {
   id             String                         @id @default(cuid())
-  userId         String                         @unique
-  manufacturerId String?
+  userId         String                         @unique @map("user_id")
+  manufacturerId String?                        @map("manufacturer_id")
   status         ManufacturerRegistrationStatus @default(PENDING)
   metadata       Json?
-  submittedAt    DateTime                       @default(now())
-  reviewedAt     DateTime?
-  reviewedById   String?
-  reviewNotes    String?
+  submittedAt    DateTime                       @default(now()) @map("submitted_at")
+  reviewedAt     DateTime?                      @map("reviewed_at")
+  reviewedById   String?                        @map("reviewed_by_id")
+  reviewNotes    String?                        @map("review_notes")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
@@ -367,14 +367,14 @@ model ManufacturerRegistration {
 
 model FacilityRegistration {
   id           String                      @id @default(cuid())
-  userId       String                      @unique
-  facilityId   String?
+  userId       String                      @unique @map("user_id")
+  facilityId   String?                     @map("facility_id")
   status       FacilityRegistrationStatus  @default(PENDING)
   metadata     Json?
-  submittedAt  DateTime                    @default(now())
-  reviewedAt   DateTime?
-  reviewedById String?
-  reviewNotes  String?
+  submittedAt  DateTime                    @default(now()) @map("submitted_at")
+  reviewedAt   DateTime?                   @map("reviewed_at")
+  reviewedById String?                     @map("reviewed_by_id")
+  reviewNotes  String?                     @map("review_notes")
 
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   facility   Facility? @relation(fields: [facilityId], references: [id])
