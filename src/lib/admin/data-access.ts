@@ -950,7 +950,7 @@ export async function fetchManufacturerOptions() {
     select: { id: true, name: true, slug: true },
     orderBy: { name: "asc" },
   });
-  return manufacturers.map((m) => ({ value: m.id, label: m.name }));
+  return manufacturers;
 }
 
 export type FacilityRegistrationListItem = {
@@ -1096,5 +1096,5 @@ export async function fetchFacilityOptions() {
     select: { id: true, name: true, slug: true },
     orderBy: { name: "asc" },
   });
-  return facilities.map((f) => ({ value: f.id, label: f.name }));
+  return facilities;
 }
