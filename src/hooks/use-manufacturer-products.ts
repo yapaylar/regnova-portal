@@ -25,7 +25,7 @@ export function useManufacturerProducts(filters: ManufacturerProductFilters = {}
   const { fetchWithAuth } = useAuth();
 
   return useQuery<ManufacturerProductResponse>({
-    queryKey: [manufacturerKeys.products(), filters],
+    queryKey: manufacturerKeys.products(filters),
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.search) params.set("search", filters.search);

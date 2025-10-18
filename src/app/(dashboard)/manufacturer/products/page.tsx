@@ -83,7 +83,7 @@ export default function ManufacturerProductsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: manufacturerKeys.products() });
+      queryClient.invalidateQueries({ queryKey: manufacturerKeys.all() });
       toast.success("Product added", { description: "New product added to your portfolio." });
       form.reset(DEFAULT_FORM_VALUES);
       setDialogOpen(false);
