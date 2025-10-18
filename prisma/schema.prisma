@@ -333,6 +333,19 @@ enum FacilityRegistrationStatus {
   REJECTED
 }
 
+enum RecallStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum RecallActionType {
+  RECALL
+  SAFETY_ALERT
+  FIELD_CORRECTION
+}
+
 model ManufacturerRegistration {
   id             String                         @id @default(cuid())
   userId         String                         @unique
