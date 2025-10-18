@@ -95,7 +95,7 @@ export function useCreateFacilityReport() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: facilityKeys.reports() });
+      queryClient.invalidateQueries({ queryKey: facilityKeys.all() });
     },
   });
 }

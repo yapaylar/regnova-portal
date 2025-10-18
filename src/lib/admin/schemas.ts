@@ -1,12 +1,3 @@
-import {
-  AuditEvent,
-  DeviceAssignmentStatus,
-  DeviceClass,
-  DeviceRegistrationStatus,
-  ReportStatus,
-  ReportType,
-  UserProfileType,
-} from "@prisma/client";
 import { z } from "zod";
 
 const paginationSchema = z.object({
@@ -16,8 +7,8 @@ const paginationSchema = z.object({
 
 export const adminReportQuerySchema = paginationSchema
   .extend({
-    status: z.nativeEnum(ReportStatus).optional(),
-    reportType: z.nativeEnum(ReportType).optional(),
+    status: z.enum(["DRAFT", "SUBMITTED", "IN_REVIEW", "ACTION_REQUIRED", "RESOLVED", "CLOSED"]).optional(),
+    reportType: z.enum(["COMPLAINT", "ADVERSE_EVENT"]).optional(),
     facilityId: z.string().min(1).optional(),
     manufacturerId: z.string().min(1).optional(),
     deviceId: z.string().min(1).optional(),
@@ -29,7 +20,7 @@ export const adminReportQuerySchema = paginationSchema
 
 export const adminAuditLogQuerySchema = paginationSchema
   .extend({
-    event: z.nativeEnum(AuditEvent).optional(),
+    event: z.string().optional(), // AuditEvent enum - too many values to hardcode
     reportId: z.string().min(1).optional(),
     userId: z.string().min(1).optional(),
     createdAfter: z.coerce.date().optional(),
@@ -42,8 +33,8 @@ export const adminDevicesQuerySchema = paginationSchema
   .extend({
     manufacturerId: z.string().min(1).optional(),
     facilityId: z.string().min(1).optional(),
-    registrationStatus: z.nativeEnum(DeviceRegistrationStatus).optional(),
-    class: z.nativeEnum(DeviceClass).optional(),
+    registrationStatus: z.enum(["REGISTERED", "PENDING", "SUSPENDED", "RETIRED"]).optional(),
+    class: z.enum(["I", "II", "III"]).optional(),
     search: z.string().optional(),
   })
   .strict();
@@ -54,14 +45,14 @@ export const adminDevicesCreateSchema = z
     modelNumber: z.string().optional().nullable(),
     manufacturerId: z.string().min(1),
     udi: z.string().optional().nullable(),
-    deviceClass: z.nativeEnum(DeviceClass),
-    registrationStatus: z.nativeEnum(DeviceRegistrationStatus),
+    deviceClass: z.enum(["I", "II", "III"]),
+    registrationStatus: z.enum(["REGISTERED", "PENDING", "SUSPENDED", "RETIRED"]),
     notes: z.string().optional().nullable(),
     assignments: z
       .array(
         z.object({
           facilityId: z.string().min(1),
-          status: z.nativeEnum(DeviceAssignmentStatus),
+          status: z.enum(["ACTIVE", "INACTIVE", "MAINTENANCE"]),
           notes: z.string().optional().nullable(),
         }),
       )
@@ -90,7 +81,7 @@ export const adminPmsCreateSchema = z
 
 export const adminUsersQuerySchema = paginationSchema
   .extend({
-    profileType: z.nativeEnum(UserProfileType).optional(),
+    profileType: z.enum(["ADMIN", "MANUFACTURER", "FACILITY"]).optional(),
     isActive: z.coerce.boolean().optional(),
     search: z.string().optional(),
   })
