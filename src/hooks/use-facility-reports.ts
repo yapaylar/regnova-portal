@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/context/auth-context";
 import { facilityKeys } from "@/lib/query-keys";
@@ -63,6 +63,40 @@ export function useFacilityReports(filters: FacilityReportFilters = {}) {
       return response.json();
     },
     staleTime: 1000 * 30,
+  });
+}
+
+export type CreateReportData = {
+  deviceId: string;
+  reportType: "COMPLAINT" | "ADVERSE_EVENT";
+  summary: string;
+  description: string;
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  dateOccurred?: string;
+};
+
+export function useCreateFacilityReport() {
+  const { fetchWithAuth } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateReportData) => {
+      const response = await fetchWithAuth("/api/facility/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create report");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [facilityKeys.complaints()] });
+    },
   });
 }
 

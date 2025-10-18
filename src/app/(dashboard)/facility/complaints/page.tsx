@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Filter, Loader2, RefreshCcw, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFacilityReports } from "@/hooks/use-facility-reports";
 import { formatDate, formatDateTime } from "@/lib/formatters";
+import { CreateReportForm } from "@/components/facility/create-report-form";
 
 const STATUS_FILTERS = [
   { value: "ALL", label: "All" },
@@ -43,17 +43,7 @@ export default function FacilityComplaintsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Complaints &amp; Report Issue</CardTitle>
-            <CardDescription>Open the report wizard to submit a complaint or adverse event.</CardDescription>
-          </div>
-          <Button asChild>
-            <Link href="/report">Report an issue</Link>
-          </Button>
-        </CardHeader>
-      </Card>
+      <CreateReportForm onSuccess={() => refetch()} />
 
       <Card>
         <CardHeader className="space-y-3">

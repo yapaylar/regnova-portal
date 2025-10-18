@@ -1,4 +1,4 @@
-import { Prisma, ReportStatus, ReportType } from "@prisma/client";
+import { Prisma, ReportStatus, ReportType, ReportSeverity } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
@@ -141,5 +141,70 @@ export async function fetchFacilityReports(filters: FacilityReportFilters, pagin
     pageSize,
     hasNextPage,
   };
+}
+
+export type CreateFacilityReportData = {
+  deviceId: string;
+  reportType: ReportType;
+  summary: string;
+  description: string;
+  severity: ReportSeverity;
+  dateOccurred?: string;
+};
+
+export async function createFacilityReport(facilityId: string, data: CreateFacilityReportData) {
+  // Verify the device is assigned to the facility
+  const assignment = await prisma.deviceAssignment.findFirst({
+    where: {
+      deviceId: data.deviceId,
+      facilityId,
+      status: "ACTIVE",
+    },
+  });
+
+  if (!assignment) {
+    throw new Error("Device not assigned to this facility");
+  }
+
+  // Get device to retrieve manufacturer info
+  const device = await prisma.device.findUnique({
+    where: { id: data.deviceId },
+    select: { manufacturerId: true },
+  });
+
+  if (!device) {
+    throw new Error("Device not found");
+  }
+
+  // Create the report
+  return prisma.report.create({
+    data: {
+      deviceId: data.deviceId,
+      facilityId,
+      manufacturerId: device.manufacturerId,
+      reportType: data.reportType,
+      severity: data.severity,
+      summary: data.summary,
+      description: data.description,
+      occurredAt: data.dateOccurred ? new Date(data.dateOccurred) : null,
+      submittedAt: new Date(),
+      status: "SUBMITTED",
+    },
+    include: {
+      device: {
+        select: {
+          id: true,
+          name: true,
+          modelNumber: true,
+          manufacturer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
